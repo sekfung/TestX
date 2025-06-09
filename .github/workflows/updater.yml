@@ -1,0 +1,97 @@
+name: Generate Updater JSON
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  generate-updater-json:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Get release info
+        id: release
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const release = context.payload.release;
+            const version = release.tag_name.replace(/^v/, '');
+            const releaseDate = release.published_at;
+            const releaseNotes = release.body || '';
+            
+            // 获取发布的资产
+            const assets = release.assets;
+            
+            // 为不同平台生成更新信息
+            const platforms = {
+              'darwin-x86_64': {
+                signature: '',
+                url: ''
+              },
+              'darwin-aarch64': {
+                signature: '',
+                url: ''
+              },
+              'windows-x86_64': {
+                signature: '',
+                url: ''
+              }
+            };
+            
+            // 匹配资产到平台
+            for (const asset of assets) {
+              const name = asset.name;
+              
+              // macOS Intel
+              if (name.includes('x64') && name.includes('darwin') && name.endsWith('.tar.gz')) {
+                platforms['darwin-x86_64'].url = asset.browser_download_url;
+              } else if (name.includes('x64') && name.includes('darwin') && name.endsWith('.tar.gz.sig')) {
+                const sigResponse = await fetch(asset.browser_download_url);
+                platforms['darwin-x86_64'].signature = await sigResponse.text();
+              }
+              
+              // macOS Apple Silicon
+              else if (name.includes('aarch64') && name.includes('darwin') && name.endsWith('.tar.gz')) {
+                platforms['darwin-aarch64'].url = asset.browser_download_url;
+              } else if (name.includes('aarch64') && name.includes('darwin') && name.endsWith('.tar.gz.sig')) {
+                const sigResponse = await fetch(asset.browser_download_url);
+                platforms['darwin-aarch64'].signature = await sigResponse.text();
+              }
+              
+              // Windows x64
+              else if (name.includes('x64') && name.includes('windows') && (name.endsWith('.msi') || name.endsWith('.exe'))) {
+                platforms['windows-x86_64'].url = asset.browser_download_url;
+              } else if (name.includes('x64') && name.includes('windows') && (name.endsWith('.msi.sig') || name.endsWith('.exe.sig'))) {
+                const sigResponse = await fetch(asset.browser_download_url);
+                platforms['windows-x86_64'].signature = await sigResponse.text();
+              }
+            }
+            
+            // 生成更新JSON
+            const updateJson = {
+              version: version,
+              notes: releaseNotes,
+              pub_date: releaseDate,
+              platforms: platforms
+            };
+            
+            core.setOutput('update_json', JSON.stringify(updateJson, null, 2));
+            core.setOutput('version', version);
+            
+      - name: Create latest.json
+        run: |
+          echo '${{ steps.release.outputs.update_json }}' > latest.json
+          cat latest.json
+          
+      - name: Upload latest.json to release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./latest.json
+          asset_name: latest.json
+          asset_content_type: application/json

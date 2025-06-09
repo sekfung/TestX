@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../IoT/aliyun-iot-sdk"
+		}
+	],
+	"settings": {}
+}

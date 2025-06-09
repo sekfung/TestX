@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "DELETE FROM configs WHERE config_type = ?1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "c47083a7b0122693ecedc26bb25367dfcc874306ec631a0049325f5f9767f3f0"
+}

@@ -1,0 +1,92 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT id, topic, qos_level, payload, status, sent_at, response, created_at, product_key, device_name, mode, python_code, notes FROM message_tests ORDER BY created_at DESC",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "topic",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "qos_level",
+        "ordinal": 2,
+        "type_info": "Int64"
+      },
+      {
+        "name": "payload",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "status",
+        "ordinal": 4,
+        "type_info": "Text"
+      },
+      {
+        "name": "sent_at",
+        "ordinal": 5,
+        "type_info": "Text"
+      },
+      {
+        "name": "response",
+        "ordinal": 6,
+        "type_info": "Text"
+      },
+      {
+        "name": "created_at",
+        "ordinal": 7,
+        "type_info": "Text"
+      },
+      {
+        "name": "product_key",
+        "ordinal": 8,
+        "type_info": "Text"
+      },
+      {
+        "name": "device_name",
+        "ordinal": 9,
+        "type_info": "Text"
+      },
+      {
+        "name": "mode",
+        "ordinal": 10,
+        "type_info": "Text"
+      },
+      {
+        "name": "python_code",
+        "ordinal": 11,
+        "type_info": "Text"
+      },
+      {
+        "name": "notes",
+        "ordinal": 12,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      true,
+      true,
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "5a89fc9b8e959446e47bcbc6b25f4e191f90ad5cac9675cda9574c930e240631"
+}

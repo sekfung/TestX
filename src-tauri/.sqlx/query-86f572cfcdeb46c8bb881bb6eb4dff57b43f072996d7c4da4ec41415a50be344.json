@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE accuracy_tests SET expected_text = ?1, result = ?2 WHERE id = ?3",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "86f572cfcdeb46c8bb881bb6eb4dff57b43f072996d7c4da4ec41415a50be344"
+}

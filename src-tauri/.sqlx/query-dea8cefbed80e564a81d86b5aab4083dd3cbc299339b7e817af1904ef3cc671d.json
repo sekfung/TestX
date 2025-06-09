@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE variables SET name = ?1, value = ?2, description = ?3, updated_at = ?4 WHERE id = ?5",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 5
+    },
+    "nullable": []
+  },
+  "hash": "dea8cefbed80e564a81d86b5aab4083dd3cbc299339b7e817af1904ef3cc671d"
+}

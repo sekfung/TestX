@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            INSERT INTO accuracy_tests (id, expected_text, recognized_text, similarity, result, created_at, completed_at, audio_file_path, python_code, mode, error_message, notes, audio_data, audio_duration, test_mode, loop_count, scheduled_time, current_loop, auto_executed)\n            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19)\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 19
+    },
+    "nullable": []
+  },
+  "hash": "61182896a2828bff1e46321c04070ff1705e54dc688b42b2dd5af62af618ac1c"
+}

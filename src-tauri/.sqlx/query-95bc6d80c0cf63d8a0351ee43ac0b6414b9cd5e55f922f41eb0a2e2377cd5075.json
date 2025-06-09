@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE message_tests SET status = ?1, sent_at = ?2, response = ?3 WHERE id = ?4",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 4
+    },
+    "nullable": []
+  },
+  "hash": "95bc6d80c0cf63d8a0351ee43ac0b6414b9cd5e55f922f41eb0a2e2377cd5075"
+}

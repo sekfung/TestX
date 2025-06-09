@@ -1,0 +1,128 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT id, expected_text, recognized_text, similarity, result, created_at, completed_at, audio_file_path, python_code, mode, error_message, notes, audio_data, audio_duration, test_mode, loop_count, scheduled_time, current_loop, auto_executed FROM accuracy_tests WHERE id = ?1",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "expected_text",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "recognized_text",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "similarity",
+        "ordinal": 3,
+        "type_info": "Float"
+      },
+      {
+        "name": "result",
+        "ordinal": 4,
+        "type_info": "Text"
+      },
+      {
+        "name": "created_at",
+        "ordinal": 5,
+        "type_info": "Text"
+      },
+      {
+        "name": "completed_at",
+        "ordinal": 6,
+        "type_info": "Text"
+      },
+      {
+        "name": "audio_file_path",
+        "ordinal": 7,
+        "type_info": "Text"
+      },
+      {
+        "name": "python_code",
+        "ordinal": 8,
+        "type_info": "Text"
+      },
+      {
+        "name": "mode",
+        "ordinal": 9,
+        "type_info": "Text"
+      },
+      {
+        "name": "error_message",
+        "ordinal": 10,
+        "type_info": "Text"
+      },
+      {
+        "name": "notes",
+        "ordinal": 11,
+        "type_info": "Text"
+      },
+      {
+        "name": "audio_data",
+        "ordinal": 12,
+        "type_info": "Text"
+      },
+      {
+        "name": "audio_duration",
+        "ordinal": 13,
+        "type_info": "Int64"
+      },
+      {
+        "name": "test_mode",
+        "ordinal": 14,
+        "type_info": "Text"
+      },
+      {
+        "name": "loop_count",
+        "ordinal": 15,
+        "type_info": "Int64"
+      },
+      {
+        "name": "scheduled_time",
+        "ordinal": 16,
+        "type_info": "Text"
+      },
+      {
+        "name": "current_loop",
+        "ordinal": 17,
+        "type_info": "Int64"
+      },
+      {
+        "name": "auto_executed",
+        "ordinal": 18,
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true,
+      false,
+      true,
+      true,
+      false,
+      false,
+      true,
+      true,
+      true,
+      false,
+      true,
+      true,
+      true,
+      true,
+      false,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "eb5be475fc705dd478ccff125153e263639c6ea88edd1dad25e41e0211b1ab73"
+}

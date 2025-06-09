@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            INSERT INTO message_tests (id, topic, qos_level, payload, status, sent_at, response, created_at, product_key, device_name, mode, python_code, notes)\n            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 13
+    },
+    "nullable": []
+  },
+  "hash": "958f847333504641dcc9f9aea875b5271dbacb4cf4ccf1b06157f56082427cc7"
+}

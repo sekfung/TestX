@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT preference_data FROM user_preferences WHERE preference_type = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "preference_data",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "e06cf0d5d02587c189957b0155f18c79ceec57d4e57a7c508797e74b00eda517"
+}
