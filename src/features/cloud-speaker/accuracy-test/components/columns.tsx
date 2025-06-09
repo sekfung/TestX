@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { CustomModal } from '@/components/ui/custom-modal'
 import { TextDiff } from '@/components/ui/text-diff'
 import { DataTableColumnHeader } from './data-table-column-header'
+import { ResultCell } from './result-cell'
 import { DataTableRowActions } from './data-table-row-actions'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -224,17 +225,8 @@ export const createColumns = (
       <DataTableColumnHeader column={column} title='验证结果' />
     ),
     cell: ({ row }) => {
-      const result = row.getValue('result') as keyof typeof resultIcons
-      const Icon = resultIcons[result]
-      const colorClass = resultColors[result]
-      const label = resultLabels[result]
-
-      return (
-        <div className='flex w-[100px] items-center'>
-          <Icon className={`mr-2 h-4 w-4 ${colorClass}`} />
-          <span className={colorClass}>{label}</span>
-        </div>
-      )
+      const result = row.getValue('result') as 'passed' | 'failed' | 'pending'
+      return <ResultCell result={result} />
     },
     filterFn: (row, id, value) => {
       return value.includes(row.getValue(id))
