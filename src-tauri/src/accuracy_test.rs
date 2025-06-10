@@ -364,6 +364,80 @@ pub async fn delete_accuracy_test(
 }
 
 #[command]
+pub async fn delete_accuracy_tests_batch(
+    ids: Vec<String>,
+    database: State<'_, DatabaseState>,
+) -> Result<(), String> {
+    let ids_clone = ids.clone();
+    database.with_db(|db| {
+        let ids = ids_clone.clone();
+        let fut = async move {
+            db.delete_accuracy_tests_batch(&ids).await.map_err(|e| format!("批量删除测试失败: {}", e))
+        };
+        Box::pin(fut)
+    }).await
+}
+
+#[command]
+pub async fn truncate_accuracy_tests(
+    app_handle: AppHandle,
+    database: State<'_, DatabaseState>,
+) -> Result<u64, String> {
+    let send_log = |level: &str, message: &str| {
+        match level {
+            "info" => Logger::info(&app_handle, message, "AccuracyTest"),
+            "warn" => Logger::warn(&app_handle, message, "AccuracyTest"),
+            "error" => Logger::error(&app_handle, message, "AccuracyTest"),
+            "debug" => Logger::debug(&app_handle, message, "AccuracyTest"),
+            _ => Logger::info(&app_handle, message, "AccuracyTest"),
+        }
+    };
+
+    send_log("info", "清空所有准确性测试记录");
+
+    // 先获取所有音频文件路径
+    let audio_files = database.with_db(|db| {
+        let fut = async move {
+            db.get_all_accuracy_test_audio_files().await.map_err(|e| format!("获取音频文件列表失败: {}", e))
+        };
+        Box::pin(fut)
+    }).await?;
+
+    // 删除数据库记录
+    let deleted_count = database.with_db(|db| {
+        let fut = async move {
+            db.truncate_accuracy_tests().await.map_err(|e| format!("清空准确性测试记录失败: {}", e))
+        };
+        Box::pin(fut)
+    }).await?;
+    
+    let success_msg = format!("清空所有准确性测试记录成功，共删除 {} 条记录", deleted_count);
+    send_log("info", &success_msg);
+        
+        // 删除对应的音频文件
+        if !audio_files.is_empty() {
+            match AudioFileManager::new(&app_handle) {
+                Ok(audio_manager) => {
+                    let mut deleted_count = 0;
+                    for audio_file in audio_files {
+                        if let Err(e) = audio_manager.delete_audio_file(&audio_file, &app_handle) {
+                            send_log("warn", &format!("删除音频文件失败 {}: {}", audio_file, e));
+                        } else {
+                            deleted_count += 1;
+                        }
+                    }
+                    send_log("info", &format!("成功删除 {} 个音频文件", deleted_count));
+                }
+                Err(e) => {
+                    send_log("warn", &format!("初始化音频文件管理器失败: {}", e));
+                }
+            }
+        }
+    
+    Ok(deleted_count)
+}
+
+#[command]
 pub async fn perform_speech_recognition(
     audio_path: String,
 ) -> Result<SpeechRecognitionResult, String> {

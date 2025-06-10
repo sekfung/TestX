@@ -19,9 +19,9 @@ use speech::recognize_speech;
 use config::{save_speech_config, save_iot_config, load_speech_config, load_iot_config, delete_config, save_recognition_config, load_recognition_config, save_hotword_config, load_hotword_config, check_config_status};
 use std::sync::Arc;
 use tokio::sync::Mutex as AsyncMutex;
-use iot_message::{send_iot_message, send_iot_message_with_precomputed_params, get_message_tests, delete_message_test, get_message_test_by_id, retest_message, DatabaseState};
+use iot_message::{send_iot_message, send_iot_message_with_precomputed_params, get_message_tests, delete_message_test, delete_message_tests_batch, truncate_message_tests, get_message_test_by_id, retest_message, DatabaseState};
 use python_executor::{PythonExecutionResult, PYTHON_TEMPLATE, send_iot_message_from_python};
-use accuracy_test::{create_accuracy_test, get_accuracy_tests, delete_accuracy_test, execute_accuracy_test_python_code, perform_speech_recognition, get_accuracy_test_python_template, execute_accuracy_test_with_message, execute_accuracy_test_with_params, execute_accuracy_test_with_params_precomputed, create_timed_recording_task};
+use accuracy_test::{create_accuracy_test, get_accuracy_tests, delete_accuracy_test, delete_accuracy_tests_batch, truncate_accuracy_tests, execute_accuracy_test_python_code, perform_speech_recognition, get_accuracy_test_python_template, execute_accuracy_test_with_message, execute_accuracy_test_with_params, execute_accuracy_test_with_params_precomputed, create_timed_recording_task};
 use audio_api::{get_test_audio_data, delete_test_audio_file, cleanup_old_audio_files};
 use database::Database;
 use tauri::{Emitter, Manager, State};
@@ -511,6 +511,7 @@ async fn main() {
     log::set_max_level(log::LevelFilter::Debug);
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_dialog::init())
         .setup(move |app| {
@@ -563,11 +564,15 @@ async fn main() {
             send_iot_message_from_python,
             get_message_tests,
             delete_message_test,
+            delete_message_tests_batch,
+            truncate_message_tests,
             get_message_test_by_id,
             retest_message,
             create_accuracy_test,
             get_accuracy_tests,
             delete_accuracy_test,
+            delete_accuracy_tests_batch,
+            truncate_accuracy_tests,
             execute_accuracy_test_python_code,
             perform_speech_recognition,
             get_accuracy_test_python_template,

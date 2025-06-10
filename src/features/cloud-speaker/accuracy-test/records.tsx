@@ -111,6 +111,7 @@ export default function AccuracyTestRecords() {
             onDataChange={loadTests}
             onEdit={handleEdit}
             onShowForm={() => {}}
+            onBatchDelete={loadTests}
             tableName="accuracy-test"
           />
         </CardContent>

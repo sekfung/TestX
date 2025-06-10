@@ -28,12 +28,14 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
   tableName: string
+  onDataChange?: () => void
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   tableName,
+  onDataChange,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] =
@@ -67,7 +69,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className='space-y-4'>
-      <DataTableToolbar table={table} tableName={tableName} />
+      <DataTableToolbar table={table} tableName={tableName} onDataChange={onDataChange} />
       <div className='rounded-md border'>
         <div className='overflow-x-auto'>
           <Table className='min-w-[1400px] table-fixed w-full'>

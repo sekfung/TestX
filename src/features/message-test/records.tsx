@@ -88,6 +88,7 @@ export default function MessageTestRecords() {
           data={data} 
           columns={columnsWithCallback} 
           tableName="message-test" 
+          onDataChange={loadData}
         />
       </div>
     </div>

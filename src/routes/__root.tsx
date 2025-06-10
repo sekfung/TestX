@@ -11,6 +11,7 @@ import { Toaster } from '@/components/ui/sonner'
 import { LogConsole } from '@/components/log-console'
 import { LogTrigger } from '@/components/log-trigger'
 import { NavigationProgress } from '@/components/navigation-progress'
+import { Updater } from '@/components/updater'
 
 function GeneralError() {
   return (
@@ -38,6 +39,7 @@ export const Route = createRootRouteWithContext<{
       <>
         <NavigationProgress />
         <Outlet />
+        <Updater />
         <Toaster duration={3000} closeButton />
         <LogConsole />
         <LogTrigger />

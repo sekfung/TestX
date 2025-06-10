@@ -44,6 +44,14 @@
   "plugins": {
     "process": {
       "active": true
+    },
+    "updater": {
+      "active": true,
+      "endpoints": [
+        "https://github.com/sekfung/TestX/releases/latest/download/latest.json"
+      ],
+      "dialog": true,
+      "pubkey": ""
     }
   }
 }

@@ -227,6 +227,24 @@ impl Database {
         Ok(())
     }
 
+    pub async fn delete_message_tests_batch(&self, ids: &[String]) -> Result<(), sqlx::Error> {
+        if ids.is_empty() {
+            return Ok(());
+        }
+        
+        let placeholders = ids.iter().enumerate().map(|(i, _)| format!("?{}", i + 1)).collect::<Vec<_>>().join(", ");
+        let query = format!("DELETE FROM message_tests WHERE id IN ({})", placeholders);
+        
+        let mut query_builder = sqlx::query(&query);
+        for id in ids {
+            query_builder = query_builder.bind(id);
+        }
+        
+        query_builder.execute(&self.connection).await?;
+        
+        Ok(())
+    }
+
     pub async fn get_message_test_by_id(&self, id: &str) -> Result<Option<MessageTest>, sqlx::Error> {
         let row = sqlx::query!(
             "SELECT id, topic, qos_level, payload, status, sent_at, response, created_at, product_key, device_name, mode, python_code, notes FROM message_tests WHERE id = ?1",
@@ -377,6 +395,50 @@ impl Database {
             .await?;
         
         Ok(())
+    }
+
+    pub async fn delete_accuracy_tests_batch(&self, ids: &[String]) -> Result<(), sqlx::Error> {
+        if ids.is_empty() {
+            return Ok(());
+        }
+        
+        // 构建 IN 子句的占位符
+        let placeholders = ids.iter().enumerate().map(|(i, _)| format!("?{}", i + 1)).collect::<Vec<_>>().join(", ");
+        let query = format!("DELETE FROM accuracy_tests WHERE id IN ({})", placeholders);
+        
+        let mut query_builder = sqlx::query(&query);
+        for id in ids {
+            query_builder = query_builder.bind(id);
+        }
+        
+        query_builder.execute(&self.connection).await?;
+        
+        Ok(())
+    }
+
+
+    pub async fn get_all_accuracy_test_audio_files(&self) -> Result<Vec<String>, sqlx::Error> {
+        let rows = sqlx::query!("SELECT audio_file_path FROM accuracy_tests WHERE audio_file_path IS NOT NULL")
+            .fetch_all(&self.connection)
+            .await?;
+        
+        Ok(rows.into_iter().filter_map(|row| row.audio_file_path).collect())
+    }
+
+    pub async fn truncate_message_tests(&self) -> Result<u64, sqlx::Error> {
+        let result = sqlx::query!("DELETE FROM message_tests")
+            .execute(&self.connection)
+            .await?;
+        
+        Ok(result.rows_affected())
+    }
+
+    pub async fn truncate_accuracy_tests(&self) -> Result<u64, sqlx::Error> {
+        let result = sqlx::query!("DELETE FROM accuracy_tests")
+            .execute(&self.connection)
+            .await?;
+        
+        Ok(result.rows_affected())
     }
 
     pub async fn get_accuracy_test_by_id(&self, id: &str) -> Result<Option<AccuracyTest>, sqlx::Error> {

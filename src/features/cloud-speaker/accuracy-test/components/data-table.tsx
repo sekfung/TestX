@@ -54,6 +54,7 @@ interface DataTableProps {
     }
   }) => void
   onShowForm?: (show: boolean) => void
+  onBatchDelete?: () => void
   tableName?: string
 }
 
@@ -64,6 +65,7 @@ export function DataTable({
   onDataChange,
   onEdit,
   onShowForm,
+  onBatchDelete,
   tableName = 'accuracy-test'
 }: DataTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
@@ -95,7 +97,7 @@ export function DataTable({
 
   return (
     <div className='space-y-4'>
-      <DataTableToolbar table={table} tableName={tableName} />
+      <DataTableToolbar table={table} tableName={tableName} onBatchDelete={onBatchDelete} />
       <div className='rounded-md border'>
         <div className='overflow-x-auto'>
           <Table className='min-w-[1400px] table-fixed w-full'>

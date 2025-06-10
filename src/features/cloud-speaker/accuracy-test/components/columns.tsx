@@ -72,6 +72,7 @@ export const createColumns = (
 ): ColumnDef<AccuracyTest>[] => [
   {
     id: 'select',
+    size: 30,
     header: ({ table }) => (
       <Checkbox
         checked={
@@ -104,7 +105,7 @@ export const createColumns = (
         TEST-{(row.getValue('id') as string).slice(0, 8)}
       </div>
     ),
-    size: 80,
+    size: 120,
     enableSorting: false,
     enableHiding: false,
   },

@@ -143,6 +143,18 @@ export const deleteMessageTest = async (id: string): Promise<void> => {
   }
 };
 
+export const deleteMessageTestsBatch = async (ids: string[]): Promise<void> => {
+  try {
+    await invoke('delete_message_tests_batch', { ids });
+  } catch (error) {
+    throw new Error(`批量删除消息测试记录失败: ${error}`);
+  }
+};
+
+export const truncateMessageTests = async (): Promise<number> => {
+  return await invoke('truncate_message_tests');
+};
+
 // 数据管理相关 API
 export const exportData = async (exportPath: string): Promise<string> => {
   try {
@@ -248,6 +260,15 @@ export const deleteAccuracyTest = async (id: string): Promise<void> => {
   } catch (error) {
     throw new Error(`删除准确性测试记录失败: ${error}`);
   }
+};
+
+export const deleteAccuracyTestsBatch = async (ids: string[]): Promise<void> => {
+  console.log('🗑️ 批量删除准确性测试:', ids);
+  await invoke('delete_accuracy_tests_batch', { ids });
+};
+
+export const truncateAccuracyTests = async (): Promise<number> => {
+  return await invoke('truncate_accuracy_tests');
 };
 
 export const completeAccuracyTest = async (testId: string, audioBase64: string): Promise<AccuracyTest> => {

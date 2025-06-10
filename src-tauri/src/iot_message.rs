@@ -508,6 +508,82 @@ pub async fn delete_message_test(
 }
 
 #[tauri::command]
+pub async fn delete_message_tests_batch(
+    app_handle: AppHandle,
+    database: State<'_, DatabaseState>,
+    ids: Vec<String>,
+) -> Result<(), String> {
+    let send_log = |level: &str, message: &str| {
+        match level {
+            "info" => Logger::info(&app_handle, message, "IoT"),
+            "warn" => Logger::warn(&app_handle, message, "IoT"),
+            "error" => Logger::error(&app_handle, message, "IoT"),
+            "debug" => Logger::debug(&app_handle, message, "IoT"),
+            _ => Logger::info(&app_handle, message, "IoT"),
+        }
+    };
+
+    send_log("info", &format!("批量删除消息测试记录: {} 条", ids.len()));
+
+    let db_guard = database.0.lock().await;
+    if let Some(db) = db_guard.as_ref() {
+        match db.delete_message_tests_batch(&ids).await {
+            Ok(_) => {
+                send_log("info", "批量删除消息测试记录成功");
+                Ok(())
+            }
+            Err(e) => {
+                let error_msg = format!("批量删除消息测试记录失败: {}", e);
+                send_log("error", &error_msg);
+                Err(error_msg)
+            }
+        }
+    } else {
+        let error_msg = "数据库未初始化";
+        send_log("error", error_msg);
+        Err(error_msg.to_string())
+    }
+}
+
+#[tauri::command]
+pub async fn truncate_message_tests(
+    app_handle: AppHandle,
+    database: State<'_, DatabaseState>,
+) -> Result<u64, String> {
+    let send_log = |level: &str, message: &str| {
+        match level {
+            "info" => Logger::info(&app_handle, message, "IoT"),
+            "warn" => Logger::warn(&app_handle, message, "IoT"),
+            "error" => Logger::error(&app_handle, message, "IoT"),
+            "debug" => Logger::debug(&app_handle, message, "IoT"),
+            _ => Logger::info(&app_handle, message, "IoT"),
+        }
+    };
+
+    send_log("info", "清空所有消息测试记录");
+
+    let db_guard = database.0.lock().await;
+    if let Some(db) = db_guard.as_ref() {
+        match db.truncate_message_tests().await {
+            Ok(deleted_count) => {
+                let success_msg = format!("清空所有消息测试记录成功，共删除 {} 条记录", deleted_count);
+                send_log("info", &success_msg);
+                Ok(deleted_count)
+            }
+            Err(e) => {
+                let error_msg = format!("清空消息测试记录失败: {}", e);
+                send_log("error", &error_msg);
+                Err(error_msg)
+            }
+        }
+    } else {
+        let error_msg = "数据库未初始化";
+        send_log("error", error_msg);
+        Err(error_msg.to_string())
+    }
+}
+
+#[tauri::command]
 pub async fn get_message_test_by_id(
     app_handle: AppHandle,
     database: State<'_, DatabaseState>,

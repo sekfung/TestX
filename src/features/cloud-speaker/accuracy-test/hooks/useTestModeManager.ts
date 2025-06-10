@@ -26,6 +26,8 @@ export interface TestModeState {
   isAutoTesting: boolean
   lastIoTParams: IoTParams | null
   lastExpectedText: string
+  loopInterval: number // 循环间隔时间（秒）
+  recordingTimeout: number // 录音超时时间（秒）
 }
 
 export interface TestModeActions {
@@ -36,6 +38,8 @@ export interface TestModeActions {
   setIsAutoTesting: (testing: boolean) => void
   setLastIoTParams: (params: IoTParams | null) => void
   setLastExpectedText: (text: string) => void
+  setLoopInterval: (interval: number) => void
+  setRecordingTimeout: (timeout: number) => void
   executePythonCode: (pythonCode: string) => Promise<{ iotParams: IoTParams; expectedText: string }>
   createTestForMode: (pythonCode: string, notes: string) => Promise<AccuracyTest>
   startLoopTest: (pythonCode: string, notes: string, onTestCreated: (test: AccuracyTest, iotParams: IoTParams, expectedText: string) => Promise<void>) => Promise<void>
@@ -51,6 +55,8 @@ export function useTestModeManager(): TestModeState & TestModeActions {
   const [isAutoTesting, setIsAutoTesting] = useState(false)
   const [lastIoTParams, setLastIoTParams] = useState<IoTParams | null>(null)
   const [lastExpectedText, setLastExpectedText] = useState('')
+  const [loopInterval, setLoopInterval] = useState(3) // 默认3秒间隔
+  const [recordingTimeout, setRecordingTimeout] = useState(15) // 默认15秒超时
 
   // 用于控制循环测试的引用
   const shouldContinueLoopRef = useRef(true)
@@ -190,10 +196,10 @@ export function useTestModeManager(): TestModeState & TestModeActions {
         await onTestCreated(newTest, iotParams, expectedText)
         logger.softwareDebug(`✅ [Manager] 测试回调函数执行完成`, 'useTestModeManager')
         
-        // 如果不是最后一次循环，等待一小段时间再开始下一次
+        // 如果不是最后一次循环，等待配置的间隔时间再开始下一次
         if (i < loopCount - 1 && shouldContinueLoopRef.current) {
-          logger.softwareDebug(`⏱️ [Manager] 等待1秒后开始下一次循环`, 'useTestModeManager')
-          await new Promise(resolve => setTimeout(resolve, 1000))
+          logger.softwareDebug(`⏱️ [Manager] 等待${loopInterval}秒后开始下一次循环`, 'useTestModeManager')
+          await new Promise(resolve => setTimeout(resolve, loopInterval * 1000))
           logger.softwareDebug(`⏱️ [Manager] 等待完成，准备下一次循环`, 'useTestModeManager')
         } else {
           logger.softwareDebug(`🏁 [Manager] 这是最后一次循环或循环被停止`, 'useTestModeManager')
@@ -304,6 +310,8 @@ export function useTestModeManager(): TestModeState & TestModeActions {
     isAutoTesting,
     lastIoTParams,
     lastExpectedText,
+    loopInterval,
+    recordingTimeout,
     
     // Actions
     setTestMode,
@@ -313,6 +321,8 @@ export function useTestModeManager(): TestModeState & TestModeActions {
     setIsAutoTesting,
     setLastIoTParams,
     setLastExpectedText,
+    setLoopInterval,
+    setRecordingTimeout,
     executePythonCode,
     createTestForMode,
     startLoopTest,

@@ -94,7 +94,7 @@ export const createColumns = (
     ),
     enableSorting: false,
     enableHiding: false,
-    size: 50,
+    size: 30,
   },
   {
     accessorKey: 'id',

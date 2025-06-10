@@ -1,9 +1,15 @@
 import { Cross2Icon } from '@radix-ui/react-icons'
 import { Table } from '@tanstack/react-table'
+import { Trash2, Trash } from 'lucide-react'
+import { useState } from 'react'
+
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { DataTableViewOptions } from '../components/data-table-view-options'
+import { toast } from 'sonner'
+
 import { DataTableFacetedFilter } from './data-table-faceted-filter'
+import { DataTableViewOptions } from './data-table-view-options'
+import { deleteMessageTestsBatch, truncateMessageTests } from '@/features/message-test/data/message-tests'
 
 const statusOptions = [
   {
@@ -57,13 +63,55 @@ const modeOptions = [
 interface DataTableToolbarProps<TData> {
   table: Table<TData>
   tableName: string
+  onDataChange?: () => void
 }
 
 export function DataTableToolbar<TData>({
   table,
   tableName,
+  onDataChange,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [isClearingAll, setIsClearingAll] = useState(false)
+  const selectedRows = table.getFilteredSelectedRowModel().rows
+  const selectedCount = selectedRows.length
+
+  const handleBatchDelete = async () => {
+    if (selectedCount === 0) {
+      toast.error('请先选择要删除的记录')
+      return
+    }
+
+    setIsDeleting(true)
+    try {
+      const ids = selectedRows.map(row => (row.original as any).id)
+      await deleteMessageTestsBatch(ids)
+      toast.success(`成功删除 ${selectedCount} 条记录`)
+      table.resetRowSelection()
+      onDataChange?.()
+    } catch (error) {
+      console.error('批量删除失败:', error)
+      toast.error('批量删除失败，请重试')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const handleClearAll = async () => {
+    setIsClearingAll(true)
+    try {
+      const deletedCount = await truncateMessageTests()
+      toast.success(`成功清空所有记录，共删除 ${deletedCount} 条记录`)
+      table.resetRowSelection()
+      onDataChange?.()
+    } catch (error) {
+      console.error('清空记录失败:', error)
+      toast.error('清空记录失败')
+    } finally {
+      setIsClearingAll(false)
+    }
+  }
 
   return (
     <div className='flex items-center justify-between'>
@@ -119,6 +167,30 @@ export function DataTableToolbar<TData>({
             <Cross2Icon className='ml-2 h-4 w-4' />
           </Button>
         )}
+        <div className='flex gap-x-2'>
+          {selectedCount > 0 && (
+            <Button
+              variant='destructive'
+              size='sm'
+              onClick={handleBatchDelete}
+              disabled={isDeleting}
+              className='h-8'
+            >
+              <Trash2 className='mr-2 h-4 w-4' />
+              {isDeleting ? '删除中...' : `删除 ${selectedCount} 项`}
+            </Button>
+          )}
+          <Button
+            variant='outline'
+            size='sm'
+            onClick={handleClearAll}
+            disabled={isClearingAll}
+            className='h-8'
+          >
+            <Trash className='mr-2 h-4 w-4' />
+            {isClearingAll ? '清空中...' : '清空所有'}
+          </Button>
+        </div>
       </div>
       <DataTableViewOptions table={table} tableName={tableName} />
     </div>

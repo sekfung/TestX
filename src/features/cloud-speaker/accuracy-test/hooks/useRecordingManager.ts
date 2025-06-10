@@ -14,7 +14,7 @@ export interface RecordingState {
 }
 
 export interface RecordingActions {
-  startRecordingAndTest: (test: AccuracyTest, iotParams: IoTParams, expectedText: string, pythonCode: string) => Promise<void>
+  startRecordingAndTest: (test: AccuracyTest, iotParams: IoTParams, expectedText: string, pythonCode: string, recordingTimeout?: number) => Promise<void>
   stopRecording: () => Promise<void>
   waitForTestCompletion: () => Promise<void>
 }
@@ -65,7 +65,8 @@ export function useRecordingManager(navigate: any): RecordingState & RecordingAc
     test: AccuracyTest,
     iotParams: IoTParams,
     expectedText: string,
-    pythonCode: string
+    pythonCode: string,
+    recordingTimeout: number = 60 // 默认60秒超时
   ) => {
     console.log('🚀 startRecordingAndTest 被调用，testId:', test.id)
     
@@ -93,7 +94,7 @@ export function useRecordingManager(navigate: any): RecordingState & RecordingAc
       const recorder = createSpeechRecorder({
         recordingMode: 'webaudio',
         autoRecognize: false, // 准确性测试不自动识别，需要手动调用测试
-        maxDuration: 15000, // 15秒限制
+        maxDuration: recordingTimeout * 1000, // 使用配置的录音超时时间（转换为毫秒）
         stopOnRecognition: true, // API识别完成后立即停止录音
         onRecognitionResult: (result: string) => {
           // 这里不会被调用，因为 autoRecognize 为 false

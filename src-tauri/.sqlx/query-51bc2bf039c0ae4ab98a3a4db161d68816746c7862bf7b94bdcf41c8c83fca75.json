@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "DELETE FROM accuracy_tests",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "51bc2bf039c0ae4ab98a3a4db161d68816746c7862bf7b94bdcf41c8c83fca75"
+}

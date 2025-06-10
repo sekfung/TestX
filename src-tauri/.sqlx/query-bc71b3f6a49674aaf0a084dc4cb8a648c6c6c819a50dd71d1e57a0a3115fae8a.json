@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT audio_file_path FROM accuracy_tests WHERE audio_file_path IS NOT NULL",
+  "describe": {
+    "columns": [
+      {
+        "name": "audio_file_path",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "bc71b3f6a49674aaf0a084dc4cb8a648c6c6c819a50dd71d1e57a0a3115fae8a"
+}

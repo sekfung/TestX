@@ -2,7 +2,9 @@ import {
   getMessageTests as apiGetMessageTests, 
   sendIoTMessage, 
   sendIoTMessageWithPrecomputedParams,
-  deleteMessageTest as apiDeleteMessageTest, 
+  deleteMessageTest as apiDeleteMessageTest,
+  deleteMessageTestsBatch as apiDeleteMessageTestsBatch,
+  truncateMessageTests as apiTruncateMessageTests, 
   getMessageTestById as apiGetMessageTestById,
   retestMessage as apiRetestMessage,
   sendIoTMessageFromPython as apiSendIoTMessageFromPython,
@@ -103,5 +105,13 @@ export const deleteMessageTest = async (id: string): Promise<void> => {
   return await apiDeleteMessageTest(id);
 };
 
+export const deleteMessageTestsBatch = async (ids: string[]): Promise<void> => {
+  return await apiDeleteMessageTestsBatch(ids);
+};
+
+export const truncateMessageTests = async (): Promise<number> => {
+  return await apiTruncateMessageTests();
+};
+
 // 空数组，数据将从后端API获取
-export const messageTests: MessageTest[] = [] 
+export const messageTests: MessageTest[] = []

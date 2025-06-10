@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "DELETE FROM message_tests",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "f123dbc19752465c326e0ee12f8aa9a68dfce33d1ecdb6889016ba16b7434093"
+}

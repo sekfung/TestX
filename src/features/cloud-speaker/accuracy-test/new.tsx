@@ -124,7 +124,8 @@ export default function AccuracyTestNew() {
             test,
             iotParams,
             expectedText,
-            pythonCode
+            pythonCode,
+            testModeManager.recordingTimeout
           )
           
           logger.softwareDebug('⏳ [UI] 等待测试完成', 'AccuracyTestNew')
@@ -160,7 +161,8 @@ export default function AccuracyTestNew() {
             test,
             iotParams,
             expectedText,
-            pythonCode
+            pythonCode,
+            testModeManager.recordingTimeout
           )
         }
       )
@@ -185,7 +187,8 @@ export default function AccuracyTestNew() {
       currentTest,
       testModeManager.lastIoTParams,
       testModeManager.lastExpectedText,
-      pythonCode
+      pythonCode,
+      testModeManager.recordingTimeout
     )
   }
 
@@ -256,63 +259,180 @@ export default function AccuracyTestNew() {
 
             {/* 模式配置选项 */}
             {testModeManager.testMode === 'loop' && (
-              <div className="space-y-3">
-                <Label htmlFor="loopCount">循环次数</Label>
-                <div className="flex items-center space-x-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => testModeManager.setLoopCount(Math.max(1, testModeManager.loopCount - 1))}
-                    disabled={testModeManager.loopCount <= 1}
-                    className="h-9 w-9 p-0"
-                  >
-                    -
-                  </Button>
-                  <Input
-                    id="loopCount"
-                    type="number"
-                    min="1"
-                    value={testModeManager.loopCount}
-                    onChange={(e) => testModeManager.setLoopCount(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="text-center w-20"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => testModeManager.setLoopCount(testModeManager.loopCount + 1)}
-                    className="h-9 w-9 p-0"
-                  >
-                    +
-                  </Button>
-                  <span className="text-sm text-muted-foreground">次</span>
+              <div className="space-y-4">
+                <div className="space-y-3">
+                  <Label htmlFor="loopCount">循环次数</Label>
+                  <div className="flex items-center space-x-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => testModeManager.setLoopCount(Math.max(1, testModeManager.loopCount - 1))}
+                      disabled={testModeManager.loopCount <= 1}
+                      className="h-9 w-9 p-0"
+                    >
+                      -
+                    </Button>
+                    <Input
+                      id="loopCount"
+                      type="number"
+                      min="1"
+                      value={testModeManager.loopCount}
+                      onChange={(e) => testModeManager.setLoopCount(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="text-center w-20"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => testModeManager.setLoopCount(testModeManager.loopCount + 1)}
+                      className="h-9 w-9 p-0"
+                    >
+                      +
+                    </Button>
+                    <span className="text-sm text-muted-foreground">次</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    将连续进行 {testModeManager.loopCount} 次录音测试
+                  </p>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  将连续进行 {testModeManager.loopCount} 次录音测试
-                </p>
+                
+                <div className="space-y-3">
+                  <Label htmlFor="loopInterval">循环间隔时间</Label>
+                  <div className="flex items-center space-x-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => testModeManager.setLoopInterval(Math.max(1, testModeManager.loopInterval - 1))}
+                      disabled={testModeManager.loopInterval <= 1}
+                      className="h-9 w-9 p-0"
+                    >
+                      -
+                    </Button>
+                    <Input
+                      id="loopInterval"
+                      type="number"
+                      min="1"
+                      value={testModeManager.loopInterval}
+                      onChange={(e) => testModeManager.setLoopInterval(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="text-center w-20"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => testModeManager.setLoopInterval(testModeManager.loopInterval + 1)}
+                      className="h-9 w-9 p-0"
+                    >
+                      +
+                    </Button>
+                    <span className="text-sm text-muted-foreground">秒</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    每次测试之间的间隔时间
+                  </p>
+                </div>
+                
+                <div className="space-y-3">
+                  <Label htmlFor="recordingTimeout">录音超时时间</Label>
+                  <div className="flex items-center space-x-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => testModeManager.setRecordingTimeout(Math.max(10, testModeManager.recordingTimeout - 10))}
+                      disabled={testModeManager.recordingTimeout <= 10}
+                      className="h-9 w-9 p-0"
+                    >
+                      -
+                    </Button>
+                    <Input
+                      id="recordingTimeout"
+                      type="number"
+                      min="10"
+                      step="10"
+                      value={testModeManager.recordingTimeout}
+                      onChange={(e) => testModeManager.setRecordingTimeout(Math.max(10, parseInt(e.target.value) || 10))}
+                      className="text-center w-20"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => testModeManager.setRecordingTimeout(testModeManager.recordingTimeout + 10)}
+                      className="h-9 w-9 p-0"
+                    >
+                      +
+                    </Button>
+                    <span className="text-sm text-muted-foreground">秒</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    单次录音的最大时长限制
+                  </p>
+                </div>
               </div>
             )}
 
             {testModeManager.testMode === 'timed' && (
-              <div className="space-y-3">
-                <Label htmlFor="scheduledTime">录音时间</Label>
-                <DateTimePicker
-                   value={testModeManager.scheduledTime ? new Date(testModeManager.scheduledTime) : undefined}
-                   onChange={(date) => {
-                     if (date) {
-                       testModeManager.setScheduledTime(date.toISOString())
-                     } else {
-                       testModeManager.setScheduledTime('')
-                     }
-                   }}
-                   placeholder="选择录音开始时间"
-                   minDate={new Date()} // 最小时间为当前时间
-                   className="w-full"
-                 />
-                <p className="text-sm text-muted-foreground">
-                  选择具体的录音开始时间（只能选择未来时间）
-                </p>
+              <div className="space-y-4">
+                <div className="space-y-3">
+                  <Label htmlFor="scheduledTime">录音时间</Label>
+                  <DateTimePicker
+                     value={testModeManager.scheduledTime ? new Date(testModeManager.scheduledTime) : undefined}
+                     onChange={(date) => {
+                       if (date) {
+                         testModeManager.setScheduledTime(date.toISOString())
+                       } else {
+                         testModeManager.setScheduledTime('')
+                       }
+                     }}
+                     placeholder="选择录音开始时间"
+                     minDate={new Date()} // 最小时间为当前时间
+                     className="w-full"
+                   />
+                  <p className="text-sm text-muted-foreground">
+                    选择具体的录音开始时间（只能选择未来时间）
+                  </p>
+                </div>
+                
+                <div className="space-y-3">
+                  <Label htmlFor="timedRecordingTimeout">录音超时时间</Label>
+                  <div className="flex items-center space-x-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => testModeManager.setRecordingTimeout(Math.max(10, testModeManager.recordingTimeout - 10))}
+                      disabled={testModeManager.recordingTimeout <= 10}
+                      className="h-9 w-9 p-0"
+                    >
+                      -
+                    </Button>
+                    <Input
+                      id="timedRecordingTimeout"
+                      type="number"
+                      min="10"
+                      step="10"
+                      value={testModeManager.recordingTimeout}
+                      onChange={(e) => testModeManager.setRecordingTimeout(Math.max(10, parseInt(e.target.value) || 10))}
+                      className="text-center w-20"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => testModeManager.setRecordingTimeout(testModeManager.recordingTimeout + 10)}
+                      className="h-9 w-9 p-0"
+                    >
+                      +
+                    </Button>
+                    <span className="text-sm text-muted-foreground">秒</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    单次录音的最大时长限制
+                  </p>
+                </div>
               </div>
             )}
 
