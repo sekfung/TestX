@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE accuracy_tests SET recognized_text = ?1, similarity = ?2, result = ?3, completed_at = ?4, error_message = ?5, audio_file_path = ?6, audio_duration = ?7 WHERE id = ?8",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 8
+    },
+    "nullable": []
+  },
+  "hash": "f54ca66fcf48c26f689087144eb68f46b784ea4f51706d48b99ba94d71446493"
+}

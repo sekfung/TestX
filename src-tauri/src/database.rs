@@ -263,8 +263,8 @@ impl Database {
         
         sqlx::query!(
             r#"
-            INSERT INTO accuracy_tests (id, expected_text, recognized_text, similarity, result, created_at, completed_at, audio_file_path, python_code, mode, error_message, notes, audio_data, audio_duration, test_mode, loop_count, scheduled_time, current_loop, auto_executed)
-            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19)
+            INSERT INTO accuracy_tests (id, expected_text, recognized_text, similarity, result, created_at, completed_at, audio_file_path, python_code, mode, error_message, notes, audio_duration, test_mode, loop_count, scheduled_time, current_loop, auto_executed)
+            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)
             "#,
             test.id,
             test.expected_text,
@@ -278,7 +278,6 @@ impl Database {
             test.mode,
             test.error_message,
             test.notes,
-            test.audio_data,
             test.audio_duration,
             test.test_mode,
             test.loop_count,
@@ -294,7 +293,7 @@ impl Database {
 
     pub async fn get_all_accuracy_tests(&self) -> Result<Vec<AccuracyTest>, sqlx::Error> {
         let rows = sqlx::query!(
-            "SELECT id, expected_text, recognized_text, similarity, result, created_at, completed_at, audio_file_path, python_code, mode, error_message, notes, audio_data, audio_duration, test_mode, loop_count, scheduled_time, current_loop, auto_executed FROM accuracy_tests ORDER BY created_at DESC"
+            "SELECT id, expected_text, recognized_text, similarity, result, created_at, completed_at, audio_file_path, python_code, mode, error_message, notes, audio_duration, test_mode, loop_count, scheduled_time, current_loop, auto_executed FROM accuracy_tests ORDER BY created_at DESC"
         )
         .fetch_all(&self.connection)
         .await?;
@@ -312,7 +311,7 @@ impl Database {
             mode: row.mode,
             error_message: row.error_message,
             notes: row.notes,
-            audio_data: row.audio_data,
+            audio_data: None, // 不再从数据库读取audio_data
             audio_duration: row.audio_duration,
             test_mode: row.test_mode,
             loop_count: row.loop_count.map(|v| v as i32),
@@ -332,19 +331,19 @@ impl Database {
         result: &str,
         completed_at: DateTime<Utc>,
         error_message: Option<&str>,
-        audio_data: Option<&str>,
+        audio_file_path: Option<&str>,
         audio_duration: Option<i64>
     ) -> Result<(), sqlx::Error> {
         let completed_at_str = completed_at.to_rfc3339();
         
         sqlx::query!(
-            "UPDATE accuracy_tests SET recognized_text = ?1, similarity = ?2, result = ?3, completed_at = ?4, error_message = ?5, audio_data = ?6, audio_duration = ?7 WHERE id = ?8",
+            "UPDATE accuracy_tests SET recognized_text = ?1, similarity = ?2, result = ?3, completed_at = ?4, error_message = ?5, audio_file_path = ?6, audio_duration = ?7 WHERE id = ?8",
             recognized_text,
             similarity,
             result,
             completed_at_str,
             error_message,
-            audio_data,
+            audio_file_path,
             audio_duration,
             id
         )
@@ -382,7 +381,7 @@ impl Database {
 
     pub async fn get_accuracy_test_by_id(&self, id: &str) -> Result<Option<AccuracyTest>, sqlx::Error> {
         let row = sqlx::query!(
-            "SELECT id, expected_text, recognized_text, similarity, result, created_at, completed_at, audio_file_path, python_code, mode, error_message, notes, audio_data, audio_duration, test_mode, loop_count, scheduled_time, current_loop, auto_executed FROM accuracy_tests WHERE id = ?1",
+            "SELECT id, expected_text, recognized_text, similarity, result, created_at, completed_at, audio_file_path, python_code, mode, error_message, notes, audio_duration, test_mode, loop_count, scheduled_time, current_loop, auto_executed FROM accuracy_tests WHERE id = ?1",
             id
         )
         .fetch_optional(&self.connection)
@@ -402,7 +401,7 @@ impl Database {
                 mode: row.mode,
                 error_message: row.error_message,
                 notes: row.notes,
-                audio_data: row.audio_data,
+                audio_data: None, // 不再从数据库读取audio_data
                 audio_duration: row.audio_duration,
                 test_mode: row.test_mode,
                 loop_count: row.loop_count.map(|v| v as i32),

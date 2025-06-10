@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT id, expected_text, recognized_text, similarity, result, created_at, completed_at, audio_file_path, python_code, mode, error_message, notes, audio_data, audio_duration, test_mode, loop_count, scheduled_time, current_loop, auto_executed FROM accuracy_tests WHERE id = ?1",
+  "query": "SELECT id, expected_text, recognized_text, similarity, result, created_at, completed_at, audio_file_path, python_code, mode, error_message, notes, audio_duration, test_mode, loop_count, scheduled_time, current_loop, auto_executed FROM accuracy_tests ORDER BY created_at DESC",
   "describe": {
     "columns": [
       {
@@ -64,43 +64,38 @@
         "type_info": "Text"
       },
       {
-        "name": "audio_data",
-        "ordinal": 12,
-        "type_info": "Text"
-      },
-      {
         "name": "audio_duration",
-        "ordinal": 13,
+        "ordinal": 12,
         "type_info": "Int64"
       },
       {
         "name": "test_mode",
-        "ordinal": 14,
+        "ordinal": 13,
         "type_info": "Text"
       },
       {
         "name": "loop_count",
-        "ordinal": 15,
+        "ordinal": 14,
         "type_info": "Int64"
       },
       {
         "name": "scheduled_time",
-        "ordinal": 16,
+        "ordinal": 15,
         "type_info": "Text"
       },
       {
         "name": "current_loop",
-        "ordinal": 17,
+        "ordinal": 16,
         "type_info": "Int64"
       },
       {
         "name": "auto_executed",
-        "ordinal": 18,
+        "ordinal": 17,
         "type_info": "Bool"
       }
     ],
     "parameters": {
-      "Right": 1
+      "Right": 0
     },
     "nullable": [
       true,
@@ -116,7 +111,6 @@
       true,
       true,
       true,
-      true,
       false,
       true,
       true,
@@ -124,5 +118,5 @@
       true
     ]
   },
-  "hash": "eb5be475fc705dd478ccff125153e263639c6ea88edd1dad25e41e0211b1ab73"
+  "hash": "ccde868f97c2d738fea6cf9180d2bed6d52a61fc0ebf2837cff4c9f1f4b57e0b"
 }

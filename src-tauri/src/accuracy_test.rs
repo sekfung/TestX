@@ -18,6 +18,7 @@ use tokio::time::{sleep, Duration};
 use chrono::{DateTime, Local};
 use lazy_static::lazy_static;
 use crate::logger::Logger;
+use crate::audio_file_manager::AudioFileManager;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AccuracyTestRequest {
@@ -319,13 +320,32 @@ pub async fn create_accuracy_test(
 #[command]
 pub async fn get_accuracy_tests(
     database: State<'_, DatabaseState>,
+    app_handle: AppHandle,
 ) -> Result<Vec<AccuracyTest>, String> {
-    database.with_db(|db| {
+    let mut tests = database.with_db(|db| {
         let fut = async move {
             db.get_all_accuracy_tests().await.map_err(|e| format!("获取测试列表失败: {}", e))
         };
         Box::pin(fut)
-    }).await
+    }).await?;
+    
+    // 为每个测试记录加载音频数据
+    let audio_manager = AudioFileManager::new(&app_handle)?;
+    for test in &mut tests {
+        if let Some(ref audio_file_path) = test.audio_file_path {
+            match audio_manager.read_audio_data(audio_file_path, &app_handle) {
+                Ok(audio_data) => {
+                    test.audio_data = Some(audio_data);
+                }
+                Err(e) => {
+                    eprintln!("读取音频文件失败 {}: {}", audio_file_path, e);
+                    // 如果文件不存在，保持audio_data为None
+                }
+            }
+        }
+    }
+    
+    Ok(tests)
 }
 
 #[command]
@@ -1316,6 +1336,24 @@ pub async fn execute_accuracy_test_with_params_precomputed(
 
     send_log("info", &format!("测试完成，相似度: {:.2}%", similarity * 100.0));
 
+    // 使用音频文件管理器保存音频文件
+    let audio_file_manager = match AudioFileManager::new(&app_handle) {
+        Ok(manager) => manager,
+        Err(e) => {
+            let error_msg = format!("初始化音频文件管理器失败: {}", e);
+            send_log("error", &error_msg);
+            return Err(error_msg);
+        }
+    };
+    
+    let audio_file_path = match audio_file_manager.save_audio_data(&test_id, &audio_base64, &app_handle) {
+        Ok(path) => Some(path),
+        Err(e) => {
+            send_log("warn", &format!("保存音频文件失败: {}, 将继续保存到数据库", e));
+            None
+        }
+    };
+
     // 保存到数据库
     let db_guard = database.0.lock().await;
     if let Some(db) = db_guard.as_ref() {
@@ -1326,7 +1364,7 @@ pub async fn execute_accuracy_test_with_params_precomputed(
             &test.result,
             test.completed_at.unwrap(),
             test.error_message.as_deref(),
-            Some(&audio_base64), // 保存录音的Base64数据
+            audio_file_path.as_deref(), // 保存音频文件路径而不是Base64数据
             audio_duration // 传递音频时长
         ).await {
             let error_msg = format!("更新测试记录失败: {}", e);

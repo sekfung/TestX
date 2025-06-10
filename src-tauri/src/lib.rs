@@ -12,9 +12,13 @@ pub mod iot_message;
 pub mod python_executor;
 pub mod database;
 pub mod accuracy_test;
+pub mod audio_api;
+pub mod audio_file_manager;
 pub mod audio_processor;
 pub mod logger;
 pub mod serial_port;
+pub mod user_preferences;
+pub mod variable_manager;
 
 #[tauri::command]
 fn greet(name: &str) -> String {
