@@ -15,7 +15,7 @@ import { toast } from 'sonner';
 
 interface DataTableViewOptionsProps<TData> {
   table: Table<TData>
-  tableName: string // Unique identifier for this table (e.g., 'message-test', 'accuracy-test')
+  tableName?: string // Unique identifier for this table (e.g., 'message-test', 'accuracy-test')
 }
 
 export function DataTableViewOptions<TData>({
@@ -25,6 +25,8 @@ export function DataTableViewOptions<TData>({
   // Load saved preferences when component mounts
   useEffect(() => {
     const loadPreferences = async () => {
+      if (!tableName) return;
+      
       try {
         const result = await invoke<string | null>('load_user_preference', { 
           preferenceType: `table_columns_${tableName}`
@@ -50,6 +52,8 @@ export function DataTableViewOptions<TData>({
     };
     
     table.setColumnVisibility(newVisibility);
+    
+    if (!tableName) return;
     
     try {
       await invoke('save_user_preference', {
