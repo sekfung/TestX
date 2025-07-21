@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE code_templates SET description = ?, code_content = ?, language = ?, updated_at = ? WHERE id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 5
+    },
+    "nullable": []
+  },
+  "hash": "ef9a9c891aa1e8a1fcd0e882ecee424273a9aa681ac495f161e29a410669550d"
+}

@@ -14,17 +14,17 @@ mod user_preferences;
 mod audio_processor;
 mod logger;
 mod serial_port;
+mod code_template;
 
 use speech::recognize_speech;
 use config::{save_speech_config, save_iot_config, load_speech_config, load_iot_config, delete_config, save_recognition_config, load_recognition_config, save_hotword_config, load_hotword_config, check_config_status};
 use std::sync::Arc;
-use tokio::sync::Mutex as AsyncMutex;
 use iot_message::{send_iot_message, send_iot_message_with_precomputed_params, get_message_tests, delete_message_test, delete_message_tests_batch, truncate_message_tests, get_message_test_by_id, retest_message, DatabaseState};
 use python_executor::{PythonExecutionResult, PYTHON_TEMPLATE, send_iot_message_from_python};
 use accuracy_test::{create_accuracy_test, get_accuracy_tests, delete_accuracy_test, delete_accuracy_tests_batch, truncate_accuracy_tests, execute_accuracy_test_python_code, perform_speech_recognition, get_accuracy_test_python_template, execute_accuracy_test_with_message, execute_accuracy_test_with_params, execute_accuracy_test_with_params_precomputed, create_timed_recording_task};
 use audio_api::{get_test_audio_data, delete_test_audio_file, cleanup_old_audio_files};
 use database::Database;
-use tauri::{Emitter, Manager, State};
+use tauri::{Emitter, Manager};
 use serde_json;
 use log::{Log, Metadata, Record, Level};
 use std::fs;
@@ -33,6 +33,7 @@ use std::path::PathBuf;
 use crate::variable_manager::{get_all_variables, create_variable, update_variable, delete_variable, get_variable_by_name, initialize_database};
 use crate::user_preferences::{save_user_preference, load_user_preference};
 use crate::serial_port::{scan_serial_ports, connect_serial_port, disconnect_serial_port, is_serial_port_connected};
+use crate::code_template::{save_code_template, get_code_templates, search_code_templates, delete_code_template, create_code_template_tag, get_all_code_template_tags, search_code_template_tags, delete_code_template_tag, update_code_template_tag, update_code_template};
 
 #[derive(Clone)]
 struct FrontendLogger {
@@ -600,6 +601,17 @@ async fn main() {
             get_test_audio_data,
             delete_test_audio_file,
             cleanup_old_audio_files,
+            // 代码模板功能
+            save_code_template,
+            get_code_templates,
+            search_code_templates,
+            delete_code_template,
+            update_code_template,
+            create_code_template_tag,
+            get_all_code_template_tags,
+            search_code_template_tags,
+            delete_code_template_tag,
+            update_code_template_tag,
             // VAD功能已移除
         ])
         .run(tauri::generate_context!())

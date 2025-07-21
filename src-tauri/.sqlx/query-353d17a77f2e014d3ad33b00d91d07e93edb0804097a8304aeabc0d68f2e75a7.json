@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE code_template_tags SET name = ?, color = ? WHERE id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "353d17a77f2e014d3ad33b00d91d07e93edb0804097a8304aeabc0d68f2e75a7"
+}

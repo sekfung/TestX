@@ -1,4 +1,5 @@
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect, useCallback } from 'react'
+import { debounce } from 'lodash'
 import { Editor } from '@monaco-editor/react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -7,9 +8,15 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
-import { IconCode, IconPlayerPlay, IconRefresh, IconFileCode, IconAlertCircle, IconCheck, IconMaximize, IconSettings, IconPalette, IconTypography } from '@tabler/icons-react'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { IconCode, IconPlayerPlay, IconRefresh, IconFileCode, IconAlertCircle, IconCheck, IconMaximize, IconSettings, IconPalette, IconTypography, IconTemplate, IconDeviceFloppy } from '@tabler/icons-react'
 import { invoke } from '@tauri-apps/api/core'
 import { FullscreenCodeEditor } from '@/components/ui/fullscreen-code-editor'
+import { CodeTemplateSelector } from '@/components/code-template-selector'
+import { saveCodeTemplate, CreateTemplateRequest } from '@/lib/tauri-api'
+import { toast } from 'sonner'
 
 interface PythonExecutionResult {
   success: boolean
@@ -43,11 +50,17 @@ export function PythonCodeEditor({
   const [executionResult, setExecutionResult] = useState<PythonExecutionResult | null>(null)
   const [isLoadingTemplate, setIsLoadingTemplate] = useState(false)
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false)
+  const [showSaveDialog, setShowSaveDialog] = useState(false)
+  const [templateName, setTemplateName] = useState('')
+  const [templateDescription, setTemplateDescription] = useState('')
   
   // 编辑器设置状态
   const [showSettings, setShowSettings] = useState(false)
   const [currentTheme, setCurrentTheme] = useState('vs-dark')
   const [fontSize, setFontSize] = useState(14)
+  
+  // 模板选择器状态
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false)
 
   // 主题选项
   const themeOptions = [
@@ -91,7 +104,33 @@ export function PythonCodeEditor({
     })
     setCode(newCode)
     onCodeChange?.(newCode)
+    
+    // 自动保存为模板（防抖处理）
+    autoSaveTemplate(newCode)
   }
+  
+  // 自动保存模板（防抖）
+  const autoSaveTemplate = useCallback(
+    debounce(async (code: string) => {
+      if (code.trim() && code.length > 50) { // 只有当代码有一定长度时才自动保存
+        try {
+          const templateName = `自动保存_${new Date().toLocaleString()}`
+          const request: CreateTemplateRequest = {
+            name: templateName,
+            description: '自动保存的代码模板',
+            code_content: code,
+            language: 'python',
+            tag_ids: []
+          }
+          await saveCodeTemplate(request)
+          console.log('代码模板自动保存成功:', templateName)
+        } catch (error) {
+          console.error('自动保存代码模板失败:', error)
+        }
+      }
+    }, 5000), // 5秒防抖
+    []
+  )
 
   // 全屏编辑器代码保存处理
   const handleFullscreenCodeChange = (newCode: string) => {
@@ -231,6 +270,16 @@ export function PythonCodeEditor({
               <Button
                 variant="outline"
                 size="sm"
+                onClick={() => setShowTemplateSelector(!showTemplateSelector)}
+                className="text-xs text-green-600 hover:text-green-700"
+                title="代码模板"
+              >
+                <IconTemplate className="h-3 w-3 mr-1" />
+                模板
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setShowSettings(!showSettings)}
                 className="text-xs text-blue-600 hover:text-blue-700"
                 title="编辑器设置"
@@ -258,6 +307,86 @@ export function PythonCodeEditor({
                 <IconRefresh className="h-3 w-3 mr-1" />
                 {isLoadingTemplate ? '加载中...' : '重置模板'}
               </Button>
+              <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={!code.trim()}
+                    className="text-xs"
+                  >
+                    <IconDeviceFloppy className="h-3 w-3 mr-1" />
+                    保存模板
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[400px]">
+                  <DialogHeader>
+                    <DialogTitle className="text-base">保存代码模板</DialogTitle>
+                    <DialogDescription className="text-sm">
+                      将当前代码保存为模板，方便以后重复使用。
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="template-name" className="text-sm">模板名称</Label>
+                      <Input
+                        id="template-name"
+                        value={templateName}
+                        onChange={(e) => setTemplateName(e.target.value)}
+                        placeholder="输入模板名称"
+                        className="h-8"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="template-description" className="text-sm">描述（可选）</Label>
+                      <Textarea
+                        id="template-description"
+                        value={templateDescription}
+                        onChange={(e) => setTemplateDescription(e.target.value)}
+                        placeholder="输入模板描述"
+                        className="min-h-[60px] text-sm"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowSaveDialog(false)}
+                      className="text-xs"
+                    >
+                      取消
+                    </Button>
+                    <Button
+                      onClick={async () => {
+                        if (!templateName.trim()) {
+                          toast.error('请输入模板名称')
+                          return
+                        }
+                        try {
+                          const request: CreateTemplateRequest = {
+                            name: templateName.trim(),
+                            description: templateDescription.trim(),
+                            code_content: code,
+                            language: 'python',
+                            tag_ids: []
+                          }
+                          await saveCodeTemplate(request)
+                          toast.success('代码模板保存成功')
+                          setTemplateName('')
+                          setTemplateDescription('')
+                          setShowSaveDialog(false)
+                        } catch (error) {
+                          toast.error(`保存代码模板失败: ${error}`)
+                        }
+                      }}
+                      disabled={!templateName.trim()}
+                      className="text-xs"
+                    >
+                      保存
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
               <Button
                 onClick={executeCode}
                 disabled={isExecuting || !code.trim()}
@@ -315,6 +444,27 @@ export function PythonCodeEditor({
               <div className="mt-3 text-xs text-muted-foreground">
                 设置仅在当前会话中有效 | 当前: {themeOptions.find(t => t.value === currentTheme)?.label} | {fontSize}px
               </div>
+            </div>
+          )}
+          
+          {/* 模板选择器面板 */}
+          {showTemplateSelector && (
+            <div className="border-t pt-4 mt-4">
+              <div className="mb-3">
+                <Label className="flex items-center space-x-2 text-sm font-medium">
+                  <IconTemplate className="h-4 w-4" />
+                  <span>代码模板管理</span>
+                </Label>
+              </div>
+              <CodeTemplateSelector
+                onTemplateSelect={(templateCode) => {
+                  setCode(templateCode)
+                  onCodeChange?.(templateCode)
+                  toast.success('模板已应用到编辑器')
+                }}
+                currentCode={code}
+                language="python"
+              />
             </div>
           )}
         </CardHeader>

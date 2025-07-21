@@ -72,6 +72,40 @@ pub struct Variable {
     pub updated_at: DateTime<Utc>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+pub struct CodeTemplate {
+    pub id: Option<i64>,
+    pub name: String,
+    pub description: Option<String>,
+    pub code_content: String,
+    pub tags: Option<String>, // JSON格式存储标签数组
+    pub language: String,
+    pub is_default: bool,
+    pub created_at: String, // SQLite中存储为字符串
+    pub updated_at: String, // SQLite中存储为字符串
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+pub struct CodeTemplateTag {
+    pub id: Option<i64>,
+    pub name: String,
+    pub color: Option<String>,
+    pub created_at: String, // SQLite中存储为字符串
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CodeTemplateWithTags {
+    pub id: Option<i64>,
+    pub name: String,
+    pub description: Option<String>,
+    pub code_content: String,
+    pub language: String,
+    pub is_default: bool,
+    pub created_at: String, // SQLite中存储为字符串
+    pub updated_at: String, // SQLite中存储为字符串
+    pub tags: Vec<CodeTemplateTag>,
+}
+
 #[derive(Debug)]
 pub struct Database {
     connection: sqlx::SqlitePool,
@@ -679,6 +713,300 @@ impl Database {
         .await?;
         
         Ok(record.map(|r| r.preference_data))
+    }
+
+    // 代码模板相关方法
+    pub async fn save_code_template(&self, name: &str, description: Option<&str>, code_content: &str, language: &str, tag_ids: &[i64]) -> Result<i64, sqlx::Error> {
+        let now = Utc::now().to_rfc3339();
+        
+        // 检查是否已存在同名模板
+        let existing = sqlx::query!(
+            "SELECT id FROM code_templates WHERE name = ?",
+            name
+        )
+        .fetch_optional(&self.connection)
+        .await?;
+        
+        let template_id = if let Some(record) = existing {
+            // 更新现有模板
+            let id = record.id.unwrap_or(0);
+            sqlx::query!(
+                "UPDATE code_templates SET description = ?, code_content = ?, language = ?, updated_at = ? WHERE id = ?",
+                description,
+                code_content,
+                language,
+                now,
+                id
+            )
+            .execute(&self.connection)
+            .await?;
+            id
+        } else {
+            // 创建新模板
+            let result = sqlx::query!(
+                "INSERT INTO code_templates (name, description, code_content, language, is_default, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                name,
+                description,
+                code_content,
+                language,
+                false,
+                now,
+                now
+            )
+            .execute(&self.connection)
+            .await?;
+            result.last_insert_rowid()
+        };
+        
+        // 删除现有的标签关联
+        sqlx::query!(
+            "DELETE FROM code_template_tag_relations WHERE template_id = ?",
+            template_id
+        )
+        .execute(&self.connection)
+        .await?;
+        
+        // 添加新的标签关联
+        for tag_id in tag_ids {
+            sqlx::query!(
+                "INSERT INTO code_template_tag_relations (template_id, tag_id) VALUES (?, ?)",
+                template_id,
+                tag_id
+            )
+            .execute(&self.connection)
+            .await?;
+        }
+        
+        Ok(template_id)
+    }
+    
+    pub async fn get_code_templates(&self, language: Option<&str>) -> Result<Vec<CodeTemplateWithTags>, sqlx::Error> {
+        let templates = if let Some(lang) = language {
+            sqlx::query_as!(
+                CodeTemplate,
+                "SELECT id, name, description, code_content, tags, language, is_default, created_at, updated_at FROM code_templates WHERE language = ? ORDER BY name",
+                lang
+            )
+            .fetch_all(&self.connection)
+            .await?
+        } else {
+            sqlx::query_as!(
+                CodeTemplate,
+                "SELECT id, name, description, code_content, tags, language, is_default, created_at, updated_at FROM code_templates ORDER BY name"
+            )
+            .fetch_all(&self.connection)
+            .await?
+        };
+        
+        let mut result = Vec::new();
+        for template in templates {
+            let template_id = template.id.unwrap_or(0);
+            let tags = self.get_template_tags(template_id).await?;
+            result.push(CodeTemplateWithTags {
+                id: template.id,
+                name: template.name,
+                description: template.description,
+                code_content: template.code_content,
+                language: template.language,
+                is_default: template.is_default,
+                created_at: template.created_at,
+                updated_at: template.updated_at,
+                tags,
+            });
+        }
+        
+        Ok(result)
+    }
+    
+    pub async fn get_template_tags(&self, template_id: i64) -> Result<Vec<CodeTemplateTag>, sqlx::Error> {
+        let tags = sqlx::query_as!(
+            CodeTemplateTag,
+            r#"
+            SELECT t.id, t.name, t.color, t.created_at
+            FROM code_template_tags t
+            INNER JOIN code_template_tag_relations r ON t.id = r.tag_id
+            WHERE r.template_id = ?
+            ORDER BY t.name
+            "#,
+            template_id
+        )
+        .fetch_all(&self.connection)
+        .await?;
+        
+        Ok(tags)
+    }
+    
+    pub async fn search_code_templates(&self, query: &str, language: Option<&str>, tag_names: &[String]) -> Result<Vec<CodeTemplateWithTags>, sqlx::Error> {
+        // 简化实现，先获取所有模板然后在内存中过滤
+        let all_templates = self.get_code_templates(language).await?;
+        
+        let mut result = Vec::new();
+        for template in all_templates {
+            let mut matches = true;
+            
+            // 检查查询字符串
+            if !query.is_empty() {
+                let query_lower = query.to_lowercase();
+                let name_matches = template.name.to_lowercase().contains(&query_lower);
+                let desc_matches = template.description
+                    .as_ref()
+                    .map(|d| d.to_lowercase().contains(&query_lower))
+                    .unwrap_or(false);
+                matches = matches && (name_matches || desc_matches);
+            }
+            
+            // 检查标签
+            if !tag_names.is_empty() {
+                let template_tag_names: Vec<String> = template.tags.iter().map(|t| t.name.clone()).collect();
+                let has_matching_tag = tag_names.iter().any(|tag| template_tag_names.contains(tag));
+                matches = matches && has_matching_tag;
+            }
+            
+            if matches {
+                result.push(template);
+            }
+        }
+        
+        Ok(result)
+    }
+    
+    pub async fn delete_code_template(&self, id: i64) -> Result<(), sqlx::Error> {
+        // 删除标签关联
+        sqlx::query!(
+            "DELETE FROM code_template_tag_relations WHERE template_id = ?",
+            id
+        )
+        .execute(&self.connection)
+        .await?;
+        
+        // 删除模板
+        sqlx::query!(
+            "DELETE FROM code_templates WHERE id = ?",
+            id
+        )
+        .execute(&self.connection)
+        .await?;
+        
+        Ok(())
+    }
+    
+    // 标签管理方法
+    pub async fn create_tag(&self, name: &str, color: Option<&str>) -> Result<i64, sqlx::Error> {
+        let now = Utc::now().to_rfc3339();
+        
+        let result = sqlx::query!(
+            "INSERT INTO code_template_tags (name, color, created_at) VALUES (?, ?, ?)",
+            name,
+            color,
+            now
+        )
+        .execute(&self.connection)
+        .await?;
+        
+        Ok(result.last_insert_rowid())
+    }
+    
+    pub async fn get_all_tags(&self) -> Result<Vec<CodeTemplateTag>, sqlx::Error> {
+        let tags = sqlx::query_as!(
+            CodeTemplateTag,
+            "SELECT id, name, color, created_at FROM code_template_tags ORDER BY name"
+        )
+        .fetch_all(&self.connection)
+        .await?;
+        
+        Ok(tags)
+    }
+    
+    pub async fn search_tags(&self, query: &str) -> Result<Vec<CodeTemplateTag>, sqlx::Error> {
+        let search_pattern = format!("%{}%", query);
+        let tags = sqlx::query_as!(
+            CodeTemplateTag,
+            "SELECT id, name, color, created_at FROM code_template_tags WHERE name LIKE ? ORDER BY name",
+            search_pattern
+        )
+        .fetch_all(&self.connection)
+        .await?;
+        
+        Ok(tags)
+    }
+    
+    pub async fn delete_tag(&self, id: i64) -> Result<(), sqlx::Error> {
+        // 删除标签关联
+        sqlx::query!(
+            "DELETE FROM code_template_tag_relations WHERE tag_id = ?",
+            id
+        )
+        .execute(&self.connection)
+        .await?;
+        
+        // 删除标签
+        sqlx::query!(
+            "DELETE FROM code_template_tags WHERE id = ?",
+            id
+        )
+        .execute(&self.connection)
+        .await?;
+        
+        Ok(())
+    }
+    
+    pub async fn update_tag(&self, id: i64, name: &str, color: Option<&str>) -> Result<(), sqlx::Error> {
+        sqlx::query!(
+            "UPDATE code_template_tags SET name = ?, color = ? WHERE id = ?",
+            name,
+            color,
+            id
+        )
+        .execute(&self.connection)
+        .await?;
+        
+        Ok(())
+    }
+    
+    pub async fn update_code_template(
+        &self,
+        id: i64,
+        name: &str,
+        description: Option<&str>,
+        code_content: &str,
+        language: &str,
+        tag_ids: &[i64],
+    ) -> Result<(), sqlx::Error> {
+        let now = Utc::now().to_rfc3339();
+        
+        // 更新模板基本信息
+        sqlx::query!(
+            "UPDATE code_templates SET name = ?, description = ?, code_content = ?, language = ?, updated_at = ? WHERE id = ?",
+            name,
+            description,
+            code_content,
+            language,
+            now,
+            id
+        )
+        .execute(&self.connection)
+        .await?;
+        
+        // 删除旧的标签关联
+        sqlx::query!(
+            "DELETE FROM code_template_tag_relations WHERE template_id = ?",
+            id
+        )
+        .execute(&self.connection)
+        .await?;
+        
+        // 添加新的标签关联
+        for tag_id in tag_ids {
+            sqlx::query!(
+                "INSERT INTO code_template_tag_relations (template_id, tag_id) VALUES (?, ?)",
+                id,
+                tag_id
+            )
+            .execute(&self.connection)
+            .await?;
+        }
+        
+        Ok(())
     }
 }
 

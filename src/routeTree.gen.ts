@@ -15,8 +15,10 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated/route
 import { Route as AuthenticatedIndexImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings/route'
 import { Route as AuthenticatedMessageTestRouteImport } from './routes/_authenticated/message-test/route'
+import { Route as AuthenticatedCodeTemplatesRouteImport } from './routes/_authenticated/code-templates/route'
 import { Route as AuthenticatedSettingsIndexImport } from './routes/_authenticated/settings/index'
 import { Route as AuthenticatedHelpCenterIndexImport } from './routes/_authenticated/help-center/index'
+import { Route as AuthenticatedCodeTemplatesIndexImport } from './routes/_authenticated/code-templates/index'
 import { Route as AuthenticatedSettingsVariablesImport } from './routes/_authenticated/settings/variables'
 import { Route as AuthenticatedSettingsSpeechImport } from './routes/_authenticated/settings/speech'
 import { Route as AuthenticatedSettingsNotificationsImport } from './routes/_authenticated/settings/notifications'
@@ -28,6 +30,7 @@ import { Route as AuthenticatedSettingsAppearanceImport } from './routes/_authen
 import { Route as AuthenticatedSettingsAccountImport } from './routes/_authenticated/settings/account'
 import { Route as AuthenticatedMessageTestRecordsImport } from './routes/_authenticated/message-test/records'
 import { Route as AuthenticatedMessageTestNewImport } from './routes/_authenticated/message-test/new'
+import { Route as AuthenticatedCodeTemplatesTagsImport } from './routes/_authenticated/code-templates/tags'
 import { Route as AuthenticatedCloudSpeakerAccuracyTestRouteImport } from './routes/_authenticated/cloud-speaker/accuracy-test/route'
 import { Route as AuthenticatedCloudSpeakerAccuracyTestRecordsImport } from './routes/_authenticated/cloud-speaker/accuracy-test/records'
 import { Route as AuthenticatedCloudSpeakerAccuracyTestNewImport } from './routes/_authenticated/cloud-speaker/accuracy-test/new'
@@ -60,6 +63,13 @@ const AuthenticatedMessageTestRouteRoute =
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
+const AuthenticatedCodeTemplatesRouteRoute =
+  AuthenticatedCodeTemplatesRouteImport.update({
+    id: '/code-templates',
+    path: '/code-templates',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+
 const AuthenticatedSettingsIndexRoute = AuthenticatedSettingsIndexImport.update(
   {
     id: '/',
@@ -73,6 +83,13 @@ const AuthenticatedHelpCenterIndexRoute =
     id: '/help-center/',
     path: '/help-center/',
     getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+
+const AuthenticatedCodeTemplatesIndexRoute =
+  AuthenticatedCodeTemplatesIndexImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedCodeTemplatesRouteRoute,
   } as any)
 
 const AuthenticatedSettingsVariablesRoute =
@@ -149,6 +166,13 @@ const AuthenticatedMessageTestNewRoute =
     getParentRoute: () => AuthenticatedMessageTestRouteRoute,
   } as any)
 
+const AuthenticatedCodeTemplatesTagsRoute =
+  AuthenticatedCodeTemplatesTagsImport.update({
+    id: '/tags',
+    path: '/tags',
+    getParentRoute: () => AuthenticatedCodeTemplatesRouteRoute,
+  } as any)
+
 const AuthenticatedCloudSpeakerAccuracyTestRouteRoute =
   AuthenticatedCloudSpeakerAccuracyTestRouteImport.update({
     id: '/cloud-speaker/accuracy-test',
@@ -181,6 +205,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRoute
     }
+    '/_authenticated/code-templates': {
+      id: '/_authenticated/code-templates'
+      path: '/code-templates'
+      fullPath: '/code-templates'
+      preLoaderRoute: typeof AuthenticatedCodeTemplatesRouteImport
+      parentRoute: typeof AuthenticatedRouteImport
+    }
     '/_authenticated/message-test': {
       id: '/_authenticated/message-test'
       path: '/message-test'
@@ -208,6 +239,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/cloud-speaker/accuracy-test'
       preLoaderRoute: typeof AuthenticatedCloudSpeakerAccuracyTestRouteImport
       parentRoute: typeof AuthenticatedRouteImport
+    }
+    '/_authenticated/code-templates/tags': {
+      id: '/_authenticated/code-templates/tags'
+      path: '/tags'
+      fullPath: '/code-templates/tags'
+      preLoaderRoute: typeof AuthenticatedCodeTemplatesTagsImport
+      parentRoute: typeof AuthenticatedCodeTemplatesRouteImport
     }
     '/_authenticated/message-test/new': {
       id: '/_authenticated/message-test/new'
@@ -286,6 +324,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsVariablesImport
       parentRoute: typeof AuthenticatedSettingsRouteImport
     }
+    '/_authenticated/code-templates/': {
+      id: '/_authenticated/code-templates/'
+      path: '/'
+      fullPath: '/code-templates/'
+      preLoaderRoute: typeof AuthenticatedCodeTemplatesIndexImport
+      parentRoute: typeof AuthenticatedCodeTemplatesRouteImport
+    }
     '/_authenticated/help-center/': {
       id: '/_authenticated/help-center/'
       path: '/help-center'
@@ -318,6 +363,22 @@ declare module '@tanstack/react-router' {
 }
 
 // Create and export the route tree
+
+interface AuthenticatedCodeTemplatesRouteRouteChildren {
+  AuthenticatedCodeTemplatesTagsRoute: typeof AuthenticatedCodeTemplatesTagsRoute
+  AuthenticatedCodeTemplatesIndexRoute: typeof AuthenticatedCodeTemplatesIndexRoute
+}
+
+const AuthenticatedCodeTemplatesRouteRouteChildren: AuthenticatedCodeTemplatesRouteRouteChildren =
+  {
+    AuthenticatedCodeTemplatesTagsRoute: AuthenticatedCodeTemplatesTagsRoute,
+    AuthenticatedCodeTemplatesIndexRoute: AuthenticatedCodeTemplatesIndexRoute,
+  }
+
+const AuthenticatedCodeTemplatesRouteRouteWithChildren =
+  AuthenticatedCodeTemplatesRouteRoute._addFileChildren(
+    AuthenticatedCodeTemplatesRouteRouteChildren,
+  )
 
 interface AuthenticatedMessageTestRouteRouteChildren {
   AuthenticatedMessageTestNewRoute: typeof AuthenticatedMessageTestNewRoute
@@ -387,6 +448,7 @@ const AuthenticatedCloudSpeakerAccuracyTestRouteRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedCodeTemplatesRouteRoute: typeof AuthenticatedCodeTemplatesRouteRouteWithChildren
   AuthenticatedMessageTestRouteRoute: typeof AuthenticatedMessageTestRouteRouteWithChildren
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
@@ -395,6 +457,8 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedCodeTemplatesRouteRoute:
+    AuthenticatedCodeTemplatesRouteRouteWithChildren,
   AuthenticatedMessageTestRouteRoute:
     AuthenticatedMessageTestRouteRouteWithChildren,
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
@@ -409,10 +473,12 @@ const AuthenticatedRouteRouteWithChildren =
 
 export interface FileRoutesByFullPath {
   '': typeof AuthenticatedRouteRouteWithChildren
+  '/code-templates': typeof AuthenticatedCodeTemplatesRouteRouteWithChildren
   '/message-test': typeof AuthenticatedMessageTestRouteRouteWithChildren
   '/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
   '/': typeof AuthenticatedIndexRoute
   '/cloud-speaker/accuracy-test': typeof AuthenticatedCloudSpeakerAccuracyTestRouteRouteWithChildren
+  '/code-templates/tags': typeof AuthenticatedCodeTemplatesTagsRoute
   '/message-test/new': typeof AuthenticatedMessageTestNewRoute
   '/message-test/records': typeof AuthenticatedMessageTestRecordsRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
@@ -424,6 +490,7 @@ export interface FileRoutesByFullPath {
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/settings/speech': typeof AuthenticatedSettingsSpeechRoute
   '/settings/variables': typeof AuthenticatedSettingsVariablesRoute
+  '/code-templates/': typeof AuthenticatedCodeTemplatesIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/cloud-speaker/accuracy-test/new': typeof AuthenticatedCloudSpeakerAccuracyTestNewRoute
@@ -434,6 +501,7 @@ export interface FileRoutesByTo {
   '/message-test': typeof AuthenticatedMessageTestRouteRouteWithChildren
   '/': typeof AuthenticatedIndexRoute
   '/cloud-speaker/accuracy-test': typeof AuthenticatedCloudSpeakerAccuracyTestRouteRouteWithChildren
+  '/code-templates/tags': typeof AuthenticatedCodeTemplatesTagsRoute
   '/message-test/new': typeof AuthenticatedMessageTestNewRoute
   '/message-test/records': typeof AuthenticatedMessageTestRecordsRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
@@ -445,6 +513,7 @@ export interface FileRoutesByTo {
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/settings/speech': typeof AuthenticatedSettingsSpeechRoute
   '/settings/variables': typeof AuthenticatedSettingsVariablesRoute
+  '/code-templates': typeof AuthenticatedCodeTemplatesIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/cloud-speaker/accuracy-test/new': typeof AuthenticatedCloudSpeakerAccuracyTestNewRoute
@@ -454,10 +523,12 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/_authenticated/code-templates': typeof AuthenticatedCodeTemplatesRouteRouteWithChildren
   '/_authenticated/message-test': typeof AuthenticatedMessageTestRouteRouteWithChildren
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/cloud-speaker/accuracy-test': typeof AuthenticatedCloudSpeakerAccuracyTestRouteRouteWithChildren
+  '/_authenticated/code-templates/tags': typeof AuthenticatedCodeTemplatesTagsRoute
   '/_authenticated/message-test/new': typeof AuthenticatedMessageTestNewRoute
   '/_authenticated/message-test/records': typeof AuthenticatedMessageTestRecordsRoute
   '/_authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
@@ -469,6 +540,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/_authenticated/settings/speech': typeof AuthenticatedSettingsSpeechRoute
   '/_authenticated/settings/variables': typeof AuthenticatedSettingsVariablesRoute
+  '/_authenticated/code-templates/': typeof AuthenticatedCodeTemplatesIndexRoute
   '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/cloud-speaker/accuracy-test/new': typeof AuthenticatedCloudSpeakerAccuracyTestNewRoute
@@ -479,10 +551,12 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | ''
+    | '/code-templates'
     | '/message-test'
     | '/settings'
     | '/'
     | '/cloud-speaker/accuracy-test'
+    | '/code-templates/tags'
     | '/message-test/new'
     | '/message-test/records'
     | '/settings/account'
@@ -494,6 +568,7 @@ export interface FileRouteTypes {
     | '/settings/notifications'
     | '/settings/speech'
     | '/settings/variables'
+    | '/code-templates/'
     | '/help-center'
     | '/settings/'
     | '/cloud-speaker/accuracy-test/new'
@@ -503,6 +578,7 @@ export interface FileRouteTypes {
     | '/message-test'
     | '/'
     | '/cloud-speaker/accuracy-test'
+    | '/code-templates/tags'
     | '/message-test/new'
     | '/message-test/records'
     | '/settings/account'
@@ -514,6 +590,7 @@ export interface FileRouteTypes {
     | '/settings/notifications'
     | '/settings/speech'
     | '/settings/variables'
+    | '/code-templates'
     | '/help-center'
     | '/settings'
     | '/cloud-speaker/accuracy-test/new'
@@ -521,10 +598,12 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_authenticated'
+    | '/_authenticated/code-templates'
     | '/_authenticated/message-test'
     | '/_authenticated/settings'
     | '/_authenticated/'
     | '/_authenticated/cloud-speaker/accuracy-test'
+    | '/_authenticated/code-templates/tags'
     | '/_authenticated/message-test/new'
     | '/_authenticated/message-test/records'
     | '/_authenticated/settings/account'
@@ -536,6 +615,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/notifications'
     | '/_authenticated/settings/speech'
     | '/_authenticated/settings/variables'
+    | '/_authenticated/code-templates/'
     | '/_authenticated/help-center/'
     | '/_authenticated/settings/'
     | '/_authenticated/cloud-speaker/accuracy-test/new'
@@ -567,11 +647,20 @@ export const routeTree = rootRoute
     "/_authenticated": {
       "filePath": "_authenticated/route.tsx",
       "children": [
+        "/_authenticated/code-templates",
         "/_authenticated/message-test",
         "/_authenticated/settings",
         "/_authenticated/",
         "/_authenticated/cloud-speaker/accuracy-test",
         "/_authenticated/help-center/"
+      ]
+    },
+    "/_authenticated/code-templates": {
+      "filePath": "_authenticated/code-templates/route.tsx",
+      "parent": "/_authenticated",
+      "children": [
+        "/_authenticated/code-templates/tags",
+        "/_authenticated/code-templates/"
       ]
     },
     "/_authenticated/message-test": {
@@ -609,6 +698,10 @@ export const routeTree = rootRoute
         "/_authenticated/cloud-speaker/accuracy-test/new",
         "/_authenticated/cloud-speaker/accuracy-test/records"
       ]
+    },
+    "/_authenticated/code-templates/tags": {
+      "filePath": "_authenticated/code-templates/tags.tsx",
+      "parent": "/_authenticated/code-templates"
     },
     "/_authenticated/message-test/new": {
       "filePath": "_authenticated/message-test/new.tsx",
@@ -653,6 +746,10 @@ export const routeTree = rootRoute
     "/_authenticated/settings/variables": {
       "filePath": "_authenticated/settings/variables.tsx",
       "parent": "/_authenticated/settings"
+    },
+    "/_authenticated/code-templates/": {
+      "filePath": "_authenticated/code-templates/index.tsx",
+      "parent": "/_authenticated/code-templates"
     },
     "/_authenticated/help-center/": {
       "filePath": "_authenticated/help-center/index.tsx",

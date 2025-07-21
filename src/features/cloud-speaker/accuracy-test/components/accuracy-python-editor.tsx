@@ -12,9 +12,40 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { IconCode, IconPlayerPlay, IconRefresh, IconAlertCircle, IconMaximize, IconSettings, IconPalette, IconTypography } from '@tabler/icons-react'
+import { IconCode, IconPlayerPlay, IconRefresh, IconAlertCircle, IconMaximize, IconSettings, IconPalette, IconTypography, IconTemplate, IconDeviceFloppy } from '@tabler/icons-react'
 import { invoke } from '@tauri-apps/api/core'
 import { FullscreenCodeEditor } from '@/components/ui/fullscreen-code-editor'
+import { CodeTemplateSelector } from '@/components/code-template-selector'
+import { saveCodeTemplate, CreateTemplateRequest, getAllCodeTemplateTags, createCodeTemplateTag, CreateTagRequest, CodeTemplateTag } from '@/lib/tauri-api'
+import { toast } from 'sonner'
+import { useCallback } from 'react'
+import { debounce } from 'lodash'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { Check, ChevronsUpDown, Plus, Tag, X } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 interface PythonExecutionResult {
   success: boolean
@@ -54,6 +85,22 @@ export function AccuracyPythonEditor({
   const [showSettings, setShowSettings] = useState(false)
   const [currentTheme, setCurrentTheme] = useState('vs-light')
   const [fontSize, setFontSize] = useState(14)
+  
+  // 模板选择器状态
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false)
+  
+  // 保存模板对话框状态
+  const [showSaveDialog, setShowSaveDialog] = useState(false)
+  const [templateName, setTemplateName] = useState('')
+  const [templateDescription, setTemplateDescription] = useState('')
+  
+  // 标签相关状态
+  const [allTags, setAllTags] = useState<CodeTemplateTag[]>([])
+  const [selectedTagIds, setSelectedTagIds] = useState<number[]>([])
+  const [tagComboOpen, setTagComboOpen] = useState(false)
+  const [showCreateTagDialog, setShowCreateTagDialog] = useState(false)
+  const [newTagName, setNewTagName] = useState('')
+  const [newTagColor, setNewTagColor] = useState('#3b82f6')
 
   // 主题选项
   const themeOptions = [
@@ -85,13 +132,121 @@ export function AccuracyPythonEditor({
     if (!initialCode) {
       loadTemplate()
     }
+    loadTags()
   }, [initialCode])
+  
+  // 加载标签
+  const loadTags = async () => {
+    try {
+      const result = await getAllCodeTemplateTags()
+      setAllTags(result)
+    } catch (error) {
+      console.error('加载标签失败:', error)
+    }
+  }
 
   // 代码变化时通知父组件
   const handleCodeChange = (value: string | undefined) => {
     const newCode = value || ''
     setCode(newCode)
     onCodeChange?.(newCode)
+    
+    // 自动保存为模板（防抖处理）
+    autoSaveTemplate(newCode)
+  }
+  
+  // 自动保存模板（防抖）
+  const autoSaveTemplate = useCallback(
+    debounce(async (code: string) => {
+      if (code.trim() && code.length > 50) { // 只有当代码有一定长度时才自动保存
+        try {
+          const templateName = `准确性测试_自动保存_${new Date().toLocaleString()}`
+          const request: CreateTemplateRequest = {
+            name: templateName,
+            description: '准确性测试自动保存的代码模板',
+            code_content: code,
+            language: 'python',
+            tag_ids: []
+          }
+          await saveCodeTemplate(request)
+          console.log('代码模板自动保存成功:', templateName)
+        } catch (error) {
+          console.error('自动保存代码模板失败:', error)
+        }
+      }
+    }, 5000), // 5秒防抖
+    []
+  )
+
+  // 手动保存模板
+  const handleSaveTemplate = async () => {
+    if (!templateName.trim()) {
+      toast.error('请输入模板名称')
+      return
+    }
+
+    if (!code.trim()) {
+      toast.error('当前代码为空，无法保存')
+      return
+    }
+
+    try {
+      const request: CreateTemplateRequest = {
+        name: templateName.trim(),
+        description: templateDescription.trim() || undefined,
+        code_content: code,
+        language: 'python',
+        tag_ids: selectedTagIds
+      }
+
+      await saveCodeTemplate(request)
+      toast.success('代码模板保存成功')
+      
+      // 重置表单
+      setTemplateName('')
+      setTemplateDescription('')
+      setSelectedTagIds([])
+      setShowSaveDialog(false)
+    } catch (error) {
+      toast.error(`保存代码模板失败: ${error}`)
+    }
+  }
+  
+  // 创建新标签
+  const handleCreateTag = async () => {
+    if (!newTagName.trim()) {
+      toast.error('请输入标签名称')
+      return
+    }
+
+    try {
+      const request: CreateTagRequest = {
+        name: newTagName.trim(),
+        color: newTagColor
+      }
+
+      await createCodeTemplateTag(request)
+      toast.success('标签创建成功')
+      
+      // 重置表单
+      setNewTagName('')
+      setNewTagColor('#3b82f6')
+      setShowCreateTagDialog(false)
+      
+      // 重新加载标签列表
+      loadTags()
+    } catch (error) {
+      toast.error(`创建标签失败: ${error}`)
+    }
+  }
+  
+  // 切换标签选择
+  const handleTagToggle = (tagId: number) => {
+    setSelectedTagIds(prev => 
+      prev.includes(tagId) 
+        ? prev.filter(id => id !== tagId)
+        : [...prev, tagId]
+    )
   }
 
   // 全屏编辑器代码保存处理
@@ -226,6 +381,16 @@ export function AccuracyPythonEditor({
               <Button
                 variant="outline"
                 size="sm"
+                onClick={() => setShowTemplateSelector(!showTemplateSelector)}
+                className="text-xs text-purple-600 hover:text-purple-700"
+                title="代码模板"
+              >
+                <IconTemplate className="h-3 w-3 mr-1" />
+                模板
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setShowSettings(!showSettings)}
                 className="text-xs text-blue-600 hover:text-blue-700"
                 title="编辑器设置"
@@ -253,6 +418,191 @@ export function AccuracyPythonEditor({
                 <IconRefresh className="h-3 w-3 mr-1" />
                 {isLoadingTemplate ? '加载中...' : '重置模板'}
               </Button>
+              
+              {/* 保存模板按钮 */}
+              <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                    disabled={!code.trim()}
+                  >
+                    <IconDeviceFloppy className="h-3 w-3 mr-1" />
+                    保存模板
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[400px]">
+                  <DialogHeader>
+                    <DialogTitle>保存代码模板</DialogTitle>
+                    <DialogDescription>
+                      将当前代码保存为模板，方便以后重复使用。
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label htmlFor="template-name" className="text-sm font-medium">
+                        模板名称
+                      </label>
+                      <Input
+                        id="template-name"
+                        value={templateName}
+                        onChange={(e) => setTemplateName(e.target.value)}
+                        placeholder="输入模板名称"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor="template-description" className="text-sm font-medium">
+                        描述（可选）
+                      </label>
+                      <Textarea
+                        id="template-description"
+                        value={templateDescription}
+                        onChange={(e) => setTemplateDescription(e.target.value)}
+                        placeholder="输入模板描述"
+                        className="min-h-[80px]"
+                      />
+                    </div>
+                    
+                    {/* 标签选择 */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium">标签（可选）</label>
+                        <Dialog open={showCreateTagDialog} onOpenChange={setShowCreateTagDialog}>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" size="sm" className="h-6 px-2 text-xs">
+                              <Plus className="h-3 w-3 mr-1" />
+                              新建标签
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-[300px]">
+                            <DialogHeader>
+                              <DialogTitle>创建新标签</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-4">
+                              <div className="space-y-2">
+                                <label className="text-sm font-medium">标签名称</label>
+                                <Input
+                                  value={newTagName}
+                                  onChange={(e) => setNewTagName(e.target.value)}
+                                  placeholder="输入标签名称"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <label className="text-sm font-medium">标签颜色</label>
+                                <div className="flex items-center space-x-2">
+                                  <input
+                                    type="color"
+                                    value={newTagColor}
+                                    onChange={(e) => setNewTagColor(e.target.value)}
+                                    className="w-8 h-8 rounded border"
+                                  />
+                                  <Input
+                                    value={newTagColor}
+                                    onChange={(e) => setNewTagColor(e.target.value)}
+                                    placeholder="#3b82f6"
+                                    className="flex-1"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            <DialogFooter>
+                              <Button variant="outline" onClick={() => setShowCreateTagDialog(false)}>
+                                取消
+                              </Button>
+                              <Button onClick={handleCreateTag} disabled={!newTagName.trim()}>
+                                创建
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                      
+                      <Popover open={tagComboOpen} onOpenChange={setTagComboOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="w-full justify-between h-9"
+                          >
+                            <div className="flex items-center">
+                              <Tag className="h-4 w-4 mr-2" />
+                              {selectedTagIds.length > 0 ? `已选择 ${selectedTagIds.length} 个标签` : "选择标签"}
+                            </div>
+                            <ChevronsUpDown className="h-4 w-4" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0">
+                          <Command>
+                            <CommandInput placeholder="搜索标签..." />
+                            <CommandList>
+                              <CommandEmpty>未找到标签</CommandEmpty>
+                              <CommandGroup>
+                                {allTags.map((tag) => (
+                                  <CommandItem
+                                    key={tag.id}
+                                    onSelect={() => handleTagToggle(tag.id)}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        selectedTagIds.includes(tag.id) ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    <Badge 
+                                      variant="secondary" 
+                                      className="text-xs"
+                                      style={{ backgroundColor: tag.color || '#3b82f6', color: 'white' }}
+                                    >
+                                      {tag.name}
+                                    </Badge>
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                      
+                      {/* 已选择的标签显示 */}
+                      {selectedTagIds.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {selectedTagIds.map((tagId) => {
+                            const tag = allTags.find(t => t.id === tagId)
+                            if (!tag) return null
+                            return (
+                              <Badge
+                                key={tagId}
+                                variant="secondary"
+                                style={{ backgroundColor: tag.color || '#3b82f6', color: 'white' }}
+                                className="cursor-pointer text-xs h-5"
+                                onClick={() => handleTagToggle(tagId)}
+                              >
+                                {tag.name}
+                                <X className="ml-1 h-2 w-2" />
+                              </Badge>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowSaveDialog(false)}
+                    >
+                      取消
+                    </Button>
+                    <Button
+                      onClick={handleSaveTemplate}
+                      disabled={!templateName.trim()}
+                    >
+                      保存模板
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+              
               <Button
                 onClick={executeCode}
                 disabled={isExecuting || !code.trim()}
@@ -310,6 +660,21 @@ export function AccuracyPythonEditor({
               <div className="mt-3 text-xs text-muted-foreground">
                 设置仅在当前会话中有效 | 当前: {themeOptions.find(t => t.value === currentTheme)?.label} | {fontSize}px
               </div>
+            </div>
+          )}
+          
+          {/* 模板选择器面板 */}
+          {showTemplateSelector && (
+            <div className="border-t pt-4 mt-4">
+              <CodeTemplateSelector
+                onTemplateSelect={(templateCode) => {
+                  setCode(templateCode)
+                  onCodeChange?.(templateCode)
+                  toast.success("代码模板已成功加载")
+                }}
+                currentCode={code}
+                language="python"
+              />
             </div>
           )}
         </CardHeader>

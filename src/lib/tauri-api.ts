@@ -495,3 +495,142 @@ export const createTimedRecordingTask = async (params: CreateTimedRecordingTaskP
     throw error
   }
 };
+
+// 代码模板相关类型定义
+export interface CodeTemplate {
+  id: number;
+  name: string;
+  description?: string;
+  code_content: string;
+  language: string;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CodeTemplateTag {
+  id: number;
+  name: string;
+  color?: string;
+  created_at: string;
+}
+
+export interface CodeTemplateWithTags {
+  template: CodeTemplate;
+  tags: CodeTemplateTag[];
+}
+
+export interface CreateTemplateRequest {
+  name: string;
+  description?: string;
+  code_content: string;
+  language: string;
+  tag_ids: number[];
+}
+
+export interface SearchTemplateRequest {
+  query?: string;
+  language?: string;
+  tag_names: string[];
+}
+
+export interface CreateTagRequest {
+  name: string;
+  color?: string;
+}
+
+// 代码模板相关 API
+export const saveCodeTemplate = async (request: CreateTemplateRequest): Promise<number> => {
+  try {
+    return await invoke('save_code_template', { request });
+  } catch (error) {
+    throw new Error(`保存代码模板失败: ${error}`);
+  }
+};
+
+export const getCodeTemplates = async (language?: string): Promise<CodeTemplateWithTags[]> => {
+  try {
+    return await invoke('get_code_templates', { language });
+  } catch (error) {
+    throw new Error(`获取代码模板失败: ${error}`);
+  }
+};
+
+export const searchCodeTemplates = async (request: SearchTemplateRequest): Promise<CodeTemplateWithTags[]> => {
+  try {
+    return await invoke('search_code_templates', {
+      query: request.query,
+      language: request.language,
+      tagNames: request.tag_names
+    });
+  } catch (error) {
+    throw new Error(`搜索代码模板失败: ${error}`);
+  }
+};
+
+export const deleteCodeTemplate = async (id: number): Promise<void> => {
+  try {
+    await invoke('delete_code_template', { id });
+  } catch (error) {
+    throw new Error(`删除代码模板失败: ${error}`);
+  }
+};
+
+export const createCodeTemplateTag = async (request: CreateTagRequest): Promise<number> => {
+  try {
+    return await invoke('create_code_template_tag', { request });
+  } catch (error) {
+    throw new Error(`创建标签失败: ${error}`);
+  }
+};
+
+export const getAllCodeTemplateTags = async (): Promise<CodeTemplateTag[]> => {
+  try {
+    return await invoke('get_all_code_template_tags');
+  } catch (error) {
+    throw new Error(`获取标签失败: ${error}`);
+  }
+};
+
+export const searchCodeTemplateTags = async (query: string): Promise<CodeTemplateTag[]> => {
+  try {
+    return await invoke('search_code_template_tags', { query });
+  } catch (error) {
+    throw new Error(`搜索标签失败: ${error}`);
+  }
+};
+
+export const updateCodeTemplate = async (request: {
+  id: number;
+  name: string;
+  description?: string;
+  code_content: string;
+  language: string;
+  tag_ids: number[];
+}): Promise<void> => {
+  try {
+    await invoke('update_code_template', { request });
+  } catch (error) {
+    throw new Error(`更新代码模板失败: ${error}`);
+  }
+};
+
+export const updateCodeTemplateTag = async (request: {
+  id: number;
+  name: string;
+  color: string;
+}): Promise<void> => {
+  try {
+    await invoke('update_code_template_tag', { request });
+  } catch (error) {
+    throw new Error(`更新标签失败: ${error}`);
+  }
+};
+
+export const deleteCodeTemplateTag = async (id: number): Promise<void> => {
+  try {
+    await invoke('delete_code_template_tag', { id });
+  } catch (error) {
+    throw new Error(`删除标签失败: ${error}`);
+  }
+};

@@ -17,6 +17,8 @@ import {
   IconDatabase,
   IconVariable,
   IconRefresh,
+  IconCode,
+  IconTags,
 } from '@tabler/icons-react'
 import { AudioWaveform, Command, GalleryVerticalEnd } from 'lucide-react'
 import { type SidebarData } from '../types'
@@ -57,6 +59,22 @@ export const sidebarData: SidebarData = {
               title: '测试记录',
               url: '/message-test/records',
               icon: IconFileText,
+            },
+          ],
+        },
+        {
+          title: '代码模板',
+          icon: IconCode,
+          items: [
+            {
+              title: '模板列表',
+              url: '/code-templates',
+              icon: IconCode,
+            },
+            {
+              title: '标签列表',
+              url: '/code-templates/tags',
+              icon: IconTags,
             },
           ],
         },

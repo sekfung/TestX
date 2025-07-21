@@ -1,0 +1,68 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT id, name, description, code_content, tags, language, is_default, created_at, updated_at FROM code_templates ORDER BY name",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Int64"
+      },
+      {
+        "name": "name",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "description",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "code_content",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "tags",
+        "ordinal": 4,
+        "type_info": "Text"
+      },
+      {
+        "name": "language",
+        "ordinal": 5,
+        "type_info": "Text"
+      },
+      {
+        "name": "is_default",
+        "ordinal": 6,
+        "type_info": "Bool"
+      },
+      {
+        "name": "created_at",
+        "ordinal": 7,
+        "type_info": "Text"
+      },
+      {
+        "name": "updated_at",
+        "ordinal": 8,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      true,
+      false,
+      true,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "436bcb1398c0d5c2dfa129deba57d2c9e98207bb0d370e6065e717fcede0a924"
+}

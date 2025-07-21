@@ -372,22 +372,10 @@ export function useRecordingManager(navigate: any): RecordingState & RecordingAc
   // 组件卸载时的清理函数
   useEffect(() => {
     return () => {
-      // 清理事件监听器
-      if (unlistenRef.current) {
-        unlistenRef.current()
-      }
+      console.log('语音测试组件卸载，测试将在后台继续运行')
       
-      // 清理语音录音器资源
-      if (speechRecorderRef.current) {
-        speechRecorderRef.current.stopRecording()
-        speechRecorderRef.current = null
-      }
-      
-      // 拒绝等待Promise（如果还在等待）
-      if (testCompletionPromiseRef.current) {
-        testCompletionPromiseRef.current.reject(new Error('组件已卸载'))
-        testCompletionPromiseRef.current = null
-      }
+      // 注意：不清理任何资源，包括事件监听器
+      // 让测试在后台继续运行，保持事件监听器活跃以接收Rust事件
     }
   }, [])
 

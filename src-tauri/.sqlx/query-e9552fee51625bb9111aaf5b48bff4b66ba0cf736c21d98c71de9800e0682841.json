@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO code_templates (name, description, code_content, language, is_default, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 7
+    },
+    "nullable": []
+  },
+  "hash": "e9552fee51625bb9111aaf5b48bff4b66ba0cf736c21d98c71de9800e0682841"
+}

@@ -68,6 +68,17 @@ export function useTestModeManager(): TestModeState & TestModeActions {
     isAutoTestingRef.current = isAutoTesting
   }, [isAutoTesting])
 
+  // 组件卸载时的清理逻辑
+  useEffect(() => {
+    return () => {
+      // 如果有正在运行的自动测试，不要强制停止，让它在后台继续运行
+      // 这样用户可以切换页面查看记录而不会中断测试
+      if (isAutoTestingRef.current) {
+        console.log('页面切换，自动测试继续在后台运行')
+      }
+    }
+  }, [])
+
   // 执行Python代码获取IoT参数和期望文本
   const executePythonCode = useCallback(async (pythonCode: string) => {
     if (!pythonCode.trim()) {

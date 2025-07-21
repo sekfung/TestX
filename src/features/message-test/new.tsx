@@ -48,6 +48,17 @@ export default function MessageTestNew() {
   // 使用 ref 来跟踪循环运行状态，避免闭包问题
   const isLoopRunningRef = React.useRef(false)
 
+  // 页面卸载时的清理逻辑
+  useEffect(() => {
+    return () => {
+      // 如果有正在运行的循环测试，不要强制停止，让它在后台继续运行
+      // 这样用户可以切换页面查看记录而不会中断测试
+      if (isLoopRunningRef.current) {
+        console.log('页面切换，循环测试继续在后台运行')
+      }
+    }
+  }, [])
+
   // 重置表单
   const resetForm = () => {
     setFormData({

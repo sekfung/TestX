@@ -5,9 +5,9 @@ import { Badge } from '@/components/ui/badge'
 import { createColumns } from './components/columns'
 import { DataTable } from './components/data-table'
 import { 
-  IconRefresh,
   IconPlus
 } from '@tabler/icons-react'
+import { AutoRefreshControl } from '@/components/auto-refresh-control'
 import { 
   getAccuracyTests,
   deleteAccuracyTest,
@@ -76,14 +76,11 @@ export default function AccuracyTestRecords() {
           </p>
         </div>
         <div className='flex space-x-2'>
-          <Button 
-            variant='outline' 
-            onClick={loadTests}
-            disabled={loading}
-          >
-            <IconRefresh className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            刷新
-          </Button>
+          <AutoRefreshControl 
+            onRefresh={loadTests}
+            intervals={[5, 10, 15, 30]}
+            defaultInterval={10}
+          />
           <Button onClick={() => navigate({ to: '/cloud-speaker/accuracy-test/new' })}>
             <IconPlus className='mr-2 h-4 w-4' />
             新建测试

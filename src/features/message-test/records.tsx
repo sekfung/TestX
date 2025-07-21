@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { IconRefresh, IconPlus } from '@tabler/icons-react'
+import { IconPlus } from '@tabler/icons-react'
 import { toast } from 'sonner'
 import { createColumns } from './components/columns'
 import { DataTable } from './components/data-table'
 import { getMessageTests, type MessageTest } from './data/message-tests'
 import { useNavigate } from '@tanstack/react-router'
+import { AutoRefreshControl } from '@/components/auto-refresh-control'
 
 type TestMode = 'form' | 'code'
 
@@ -68,14 +69,11 @@ export default function MessageTestRecords() {
           </p>
         </div>
         <div className='flex space-x-2'>
-          <Button 
-            variant='outline' 
-            onClick={loadData}
-            disabled={refreshing}
-          >
-            <IconRefresh className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-            刷新
-          </Button>
+          <AutoRefreshControl 
+            onRefresh={loadData}
+            intervals={[5, 10, 15, 30]}
+            defaultInterval={10}
+          />
           <Button onClick={() => navigate({ to: '/message-test/new' })}>
             <IconPlus className='mr-2 h-4 w-4' />
             新建测试

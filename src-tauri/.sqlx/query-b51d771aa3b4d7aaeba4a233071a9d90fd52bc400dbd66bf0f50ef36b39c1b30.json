@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO code_template_tag_relations (template_id, tag_id) VALUES (?, ?)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "b51d771aa3b4d7aaeba4a233071a9d90fd52bc400dbd66bf0f50ef36b39c1b30"
+}
